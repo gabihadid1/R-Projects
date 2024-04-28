@@ -1,0 +1,1182 @@
+---
+title: "Assessment 1"
+author: "Gabriela Cohen Hadid 341348910"
+output: html_document
+---
+# *Lab 1: Basic Data Wrangling and Plotting, Distributions*  
+<br/><br/>  
+  
+### Submission Instructions  
+
+- Your final submission should include two files: an `Rmd` file (with your answers filled-in) and an `html` file that was generated automatically by knitting the `Rmd` file using knitr.  Name your files as `<ID1>_<ID2>.Rmd` and `<ID1>_<ID2>.html` (insert your ID numbers instead). 
+
+
+- **Grading:** There are $8$ questions with overall $15$ sub-questions. Each sub-question is worth $6\frac{2}{3}$ points to the overall lab grade. 
+The questions vary in length and difficulty level. It is recommended to start with the simpler and shorter questions. 
+Points may be reduced for incorrect naming of files, missing parts and problems in knitting the `Rmd` file and general appearance of the report. 
+
+- **Libraries:** The only allowed libraries are listed below  (**do not add additional libraries without permission from the course staff**):
+
+library(tidyverse) # This includes dplyr, stringr, ggplot2, .. 
+library(data.table)
+library(rworldmap) # world map
+library(ggthemes)
+library(reshape2) # melt: change data-frame format long/wide
+library(e1071) # skewness and kurtosis
+library(rvest)
+library(corrplot)
+library(moments)
+library(spatstat.geom)
+
+<br/><br/>
+
+## Analysis of the World Democracy Index Dataset         
+    
+The [wikipedia/Democracy_Index](https://en.wikipedia.org/wiki/Democracy_Index) website hosts world-wide data on different measurements of democracy index for world countries. 
+For more information about it, please visit [here](https://web.archive.org/web/20170320185156/http://pages.eiu.com/rs/eiu2/images/Democracy-Index-2012.pdf).    <br>
+  
+We will focus on analyzing the changes in the index in different countries, as well as the individual components comprising the index, and comparison to other datasets. 
+
+
+### General Guidance
+- Your solution should be submitted as a full report integrating text, code, figures and tables. 
+For each question, describe first in the text of your solution what you're trying to do, then include the relevant code, 
+then the results (e.g. figures/tables) and then a textual description of them. 
+
+- In most questions the extraction/manipulation of relevant parts of the data-frame can be performed using commands from the `tidyverse` and `dplyr` R packages, such as `head`, `arrange`, `aggregate`, `group-by`, `filter`, `select`, `summaries`, `mutate` etc.
+
+- When displaying tables, show the relevant columns and rows with meaningful names, and describe the results. 
+
+- When displaying figures, make sure that the figure is clear to the reader, axis ranges are appropriate, labels for the axis, title and different curves/bars are displayed clearly (font sizes are large enough), a legend is shown when needed etc. 
+Explain and describe in text what is shown in the figure. 
+
+- It could be that in some cases data are missing (e.g. `NA`). Make sure that all your calculations (e.g. taking the maximum, average, correlation etc.) take this into account. Specifically, the calculations should ignore the missing values to allow us to compute the desired results for the rest of the values (for example, using the option `na.rm = TRUE` or `us = "complete.obs"`). 
+
+
+
+### Questions: 
+
+1. **Loading data and basic processing:**
+    a. Load the  [democracy-index](https://en.wikipedia.org/wiki/Democracy_Index) html into an `R` object, 
+    using the `rvest` package. <br>
+    Next, extract the three tables shown in the web-page as `List by region`, `List by country` and `components` into three separate `R` data-frames. 
+Display the top five rows of each table to check that they were loaded correctly. <br>
+    b. Display in a new table the `top` five *countries* in terms of the democracy index in *2022*. Show only the country name and the democracy index. <br>
+Repeat the same with the five `bottom` countries in *2022*. <br>
+Repeat the same with the five top and bottom countries according to the *average* index value of all the $15$ years between *2006* and *2022* for which data is available in the table `List by country`.
+
+
+2. **Plotting distributions of groups of countries:**
+    a. Make one figure showing seven boxplots representing the distributions of the `democracy index` in *2022* of the different world regions given in the `List by country` table (each boxplot should represent the distribution of all countries within a specific region). <br>
+    Next, for each region that has at least one outlier country, find and list all the outliers that appear in the boxplot. <br>
+    (**Hint:** You may use the `boxplot.stats` command). <br>
+    b. Make a figure showing density plots for the same distributions of the `democracy index` in *2022* in the seven different regions. Do the densities resemble to the Normal distribution? 
+Compute the *mean*, *variance*, *skewness* and *kurtosis* for all the distributions, display them in a table and explain what they mean about the empirical distribution of the data. 
+
+
+3. **Comparing countries and showing trends in democracy index:**
+    a. Write a function that receives as input a data-frame, and a vector of country names (as strings). The function plots the values of the `democracy index` of these countries in different colors as a function of the year (from *2006* to *2022*), shown on the same graph as curves with different colors or symbols. Use meaningful axis and plot labels, and add an informative legend. Use the function and plot  the `democracy index` for five countries of your choice. <br>
+    Use the same function for the table `List by region` where the seven region names as inserted as input instead of `countries`, to show changes in the world regions `democracy index` over time. <br>
+    
+    b. Divide the countries into eight separate groups (clusters) as follows: 
+- First, countries whose index increased (one cluster) or decreased (another cluster) by at least $1.5$ points between *2006* and *2022*. 
+- Second, countries whose index increased (one cluster) or decreased (another cluster) by between $0.75$ to $1.5$ points between *2006* and *2022*. 
+- Next, countries that dropped by at least $0.75$ points after $2006$, and then recovered by at least $0.75$ points in $2022$ compared to the lowest drop.
+- Similarly, countries that increased by at least $0.75$ points after $2006$, and then dropped by at least $0.75$ points in $2022$ compared to the highest point.
+- Next, countries that had barely changed from $2006$ to $2022$, i.e. that the difference between their highest and lowest index was less than $0.5$ points. 
+- Finally, all other countries. <br>
+For each of the eight groups of countries, plot their changes using the function from 3.a. Describe the patterns you see in the different groups. 
+
+**Remark:** Don't worry if some of the groups you get are large with countries with very similar colors, and/or a small graph panel due to a large legend.
+
+
+4. **Change in category:** <br>
+    For each of the four different regime types (`Full democracy`, `Flawed democracy`, `Hybrid regime`,  `Authoritarian`), use the countries democracy index data frame to estimate the probability of a country to go from one such a regime in $2006$ to each of the other four regimes in $2022$.
+    Show the results (sixteen estimated probabilities) in a $4$-by-$4$ table, and also in a heatmap. <br>
+    **Remarks:** Your estimates should simply be the empirical frequencies - for example, if $2$ out $20$ countries moved from  `Authoritarian` in $2006$ to `Hybrid regime` in $2022$, then get an estimate of $0.1$ for the probability of such a regime change). <br>
+    Use the table `By regime type` from the democracy index webpage to determine the regime type  category based on the democracy index value. 
+
+
+5. **Joining data from additional tables:**
+    a. Load tables for the [gdp](https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)_per_capita), [population size](https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population), [incarnation rates](https://en.wikipedia.org/wiki/List_of_countries_by_incarceration_rate) and [area](https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area) web pages using the `rvest` library. <br>
+    For each of the four web-page, extract the table for countries into an `R` data-frame. <br>
+    Join the table of the democracy index by country with these four table, using the countries names for joining. 
+    Display the top five rows of the joined table <br>
+    b. Fit a simple linear regression model with the `democracy index` at $2022$ as the predictor and `GDP (PPP) per capita`  (use the CIA estimates) as the response, 
+    and report the regression results. <br>
+    Next, Make a scatter plot of the  the `GDP (PPP) per capita` (y-axis) vs. the `democracy index` at $2022$, with the fittedthe regression line. 
+    Describe your results. <br>
+    Repeat the same steps with `incarnation rate (per 100,000)` as the response 
+
+
+6. **Empirical Cumulative Distribution Function (CDF):**
+    a. Let $X$ be a random variable representing the current `GDP (PPP) per capita` of a randomly selected *country*, 
+    where countries are selected uniformly at random from all world countries. Compute and plot the empirical 
+    CDF of $X$. Use here and in b,c the latest CIA estimates as in Qu. 5. <br>
+    b. Let $Y$ be a random variable representing the current `GDP (PPP) per capita` of a randomly selected *person* in the world, 
+    where a person is selected uniformly at random from all world population. Compute and plot the empirical CDF for $Y$ and explain the differences from the distribution for $X$.
+    **Remark:** Use the population size data to compute the empirical CDF for this case. It is possible to use the library `spatstat.geom`.
+    c. Let $Z$ be a random variable representing the current `GDP (PPP) per capita` of a randomly selected *person* in the world, 
+    where the *location* of the person is selected uniformly at random from all the land area on earth. Compute and plot the empirical CDF for $Z$ and explain the differences from the distribution for $X$.
+    Compare the median, and the $25\%$ and $75\%$ percentiles of $X,Y$ and $Z$. Are they similar or different? explain. 
+    **Remark:** Use the countries land area (in $km^2$ or $mi^2$) to compute the empirical CDF for this case. You will need to parse the corresponding column to get the numerical data. 
+
+
+7. **Displaying data on the world map:** <br>
+    Use the `rworldmap` package to display the world map and color each country based on the `average democracy index` across the years from $2006$ to $2022$. 
+    Describe the resulting map in a couple of sentences. <br>
+    Next, repeat all parts above , but this time display in the map the `difference` in the index between $2022$ and $2006$. 
+
+    **Guidance:** Use the `joinCountryData2Map` and `mapCountryData` commands to make the plots. 
+    Keep countries with missing data in white. 
+
+
+8. **Coponents of the Demography Index:** 
+    a. Join the `components` table with the main table from the previous questions. Display the top five rows. 
+    Next, compute the correlation between all pairs of the five democracy components (`Electoral process and pluralism`, `Functioning of government`,  `Political participation`, `Political culture` and `Civil liberties`), and plot the resulting $5$-by-$5$ correlations matrix in a heatmap. (It is possible to use the `corrplot` library). <br>
+    b. Run multiple linear regression where the covariates are the different democracy sub-indices form the `components` table, and the response variable that you try to predict the `GDP (PPP) per capita` of each country. <br>
+    Show a summary of your regression analysis. What coefficients are significant at significance level $\alpha=0.01$? <br>
+    What countries are outliers? Display the five countries with the highest and lowest residuals in a table.  Can you think of other factors contributing to their
+    high/low `GDP (PPP) per capita`?
+
+
+
+
+**Good luck!**
+
+**Solution:**  (Fill code, text, plots etc.)
+
+
+# Lab 1 - Analysis of the World Democracy Index Dataset
+
+```{r setup,message=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE,message = FALSE)  
+
+# Allowed Libraries
+
+library(tidyverse)
+library(data.table)
+library(rworldmap) 
+library(ggthemes)
+library(reshape2)
+library(e1071) 
+library(rvest)
+library(corrplot)
+library(moments)
+library(spatstat.geom)
+```
+
+
+## Question 1 - Loading data and basic processing
+
+### **a**
+
+First, I loaded the data into R and extracted the relevant tables. Second, I displayed the first 5 lines of each table.
+
+```{r}
+
+# Loading the data
+
+democracy <- read_html("https://en.wikipedia.org/wiki/Democracy_Index")
+all.tables <- html_nodes(democracy,"table")
+
+# Saving each desired table as a separate data set
+
+list_by_region <- as.data.frame(html_table(all.tables[4],fill = TRUE))
+list_by_country <- as.data.frame(html_table(all.tables[6],fill = TRUE))
+components <- as.data.frame(html_table(all.tables[7],fill = TRUE))
+components <- components %>% rename("Δ.Rank" = ".mw.parser.output..tooltip.dotted.border.bottom.1px.dotted.cursor.help.Δ.Rank")  # Renaming one column to look nicer
+
+# Checking if there are any na values in data sets
+
+sum(is.na(list_by_country))  
+sum(is.na(list_by_region))
+sum(is.na(components))
+
+# Shows the first 5 lines of each data set 
+
+head(list_by_region, n = 5L)
+head(list_by_country, n = 5L)
+head(components, n = 5L)
+```
+
+
+
+### **b**
+
+First, because the components table ranked already each country according to its democracy index in 2022, I used this table to display the first and bottom 5 countries. I used dplyr package and pipe commands to select the columns desired to display. 
+Then, I created a data frame with a new column representing the average index of each country. Next, I sorted according to the mean index and displayed the first and bottom 5 countries.
+
+
+```{r}
+
+# Manual adjustments - Dropped a blank line
+
+components <- components[-1,]  
+
+# Components table is already ranked
+
+components %>%  
+  select(Country,Overall.score) %>%  # Selected the desired columns to display 
+  slice(-1) %>%  # Dropped the line that was written "Full Democracies"
+  head(n = 5)  # Showing 5 first lines
+
+components %>%
+  select(Country,Overall.score) %>%
+  tail(n = 5) %>%  # Got the lasts countries in the rank
+  arrange(Overall.score)  # Arranging to display it in a increasing order
+
+# Made a vector string for all the years
+
+years <- c("X2006","X2008",(paste("X20",10:22,sep = ""))) 
+
+# New data set with average index 
+
+mean_df <- list_by_country %>%  
+  select(-Region,-X2022.rank,-Regime.type) %>%  # Dropping columns not desired
+  rowwise() %>%  # Looking according to rows
+  mutate(mean_index = mean(c_across(all_of(years)),na.rm = TRUE))  # Adding a new column that is the mean of all year rows by country
+
+# Sorting and displaying top and bottom 5 countries according to the mean index
+
+as.data.frame(mean_df %>%
+  arrange(desc(mean_index)) %>% 
+  select(Country,mean_index)) %>%  # Selecting which columns to display
+  slice(1:5)  # Showing the last 5 lines (Top 5 Countries) 
+
+as.data.frame(mean_df %>%
+  arrange(mean_index) %>%
+  select(Country,mean_index)) %>%
+  head(n = 5)   # Showing the first five lines (Bottom 5 Countries)
+
+  
+```
+
+
+
+The top 5 countries with the highest democracy index are located in Europe, while the bottom 5 countries with the lowest democracy index are located in Asia and Africa.
+
+
+
+## Question 2
+
+### **a**
+
+In this exercise, I built a function to detect outliers. Then, I identified which countries are outliers according to their regions. In the boxplot graph, I displayed the distributions of each region and added the names of the outliers countries in the graph.
+
+
+```{r}
+
+# Function to identify outliers
+
+is_outlier <- function(x) {
+  return(x < quantile(x,0.25) - 1.5 * IQR(x) | x > quantile(x,0.75) + 1.5 * IQR (x))
+} 
+
+# Using the function to identify outliers countries according to regions
+
+list_by_country <- list_by_country %>% 
+  group_by(Region) %>%
+  mutate(outlier = ifelse(is_outlier(X2022),Country,NA))  # Adds a new column to data set which says if certain country is a outlier or not according to regions
+
+ # Building a boxplot graph according to regions and democracy index
+
+box <- ggplot(data = list_by_country,mapping = aes(x = Region, y = X2022,fill = Region)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(size = 10,angle = 90,hjust = 1,vjust=.5)) +  # Adjusting x's text
+  scale_y_continuous(breaks=seq(0,10,1)) +
+  geom_text(aes(label = outlier),na.rm = TRUE, show.legend = F,hjust = -0.25,size = 2) +  # Adding outlier countries in the graph (shown as bullet points)
+  labs(y = "Democracy Index", title = "Distributions of Democracy Index", subtitle = "By world regions in 2022" )  # Creating a boxplot graph
+
+# Displaying graph
+
+box 
+
+```
+
+
+
+A few points to be analysed from the graph :
+
+* The graph reveals a significant disparity in the democracy index between western and eastern regions. The Middle East and North Africa exhibit the lowest median value in 2022, represented as a line within the box, while North America displays the highest median. 
+
+* Within the Middle East and North Africa, Israel stands out as an outlier due to its notably higher democracy index compared to the rest of the region. Conversely, in Western Europe, Turkey is an outlier with a significantly lower democracy index compared to other countries in the region.
+
+* The democracy index range varies greatly in different regions. North American countries demonstrate a narrow range in the democracy index, indicating relatively similar levels of democracy. In contrast, Asia and Australasia exhibit a substantial difference of approximately 9 on the democracy index between the highest and lowest ranked countries.
+
+
+
+
+
+
+### **b**
+
+We built a density plot using the ggplot tool geom_density for the same distributions. Then, we computed for each region the mean, variance skewness and kurtosis.
+
+```{r}
+
+# Density Plot
+
+density_plot <- ggplot(data = list_by_country,mapping = aes(x = X2022,color = as.factor(Region))) +
+  geom_density() +
+  labs(y = "Density", x = "Democracy Index 2022", title = "Density Plot", subtitle = "By world regions in 2022", color = "Regions" )  
+  
+density_plot
+
+ # Creating a character vector with region names
+
+regions <- levels(as.factor(list_by_country$Region)) 
+
+# Applying the mean for each region
+
+mean_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = mean)  
+
+# Variance of each region
+
+var_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = var)  
+
+# Skewness of each region
+
+skew_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = skewness)  
+
+# Kurtosis of each region
+
+kurto_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = kurtosis)  
+
+# Creating a matrix of results above
+
+tab <- matrix(c(mean_dis,var_dis,skew_dis,kurto_dis),byrow = TRUE,nrow = 4)  
+
+# Adding row names for each operation done
+
+rownames(tab) <- c("Mean", "Variance", "Skewness", "Kurtosis")  
+
+# Column names are the regions
+
+colnames(tab) <- regions  
+
+# Displaying matrix as a table
+
+as.table(tab) 
+
+```
+
+
+The Densities do not resemble to the Normal Distribution.
+
+
+Mean, variance, skewness and kurtosis are statistical measures that help us understand different aspects of the data:
+
+
+- Mean: The average value of a data set.
+- Variance: The dispersion of the data points around the mean.
+- Skewness: Measures the asymmetry of the distribution (a positive skewness indicates a right tail while a negative skewness indicates a left tail).
+- Kurtosis: Measures the shape of a distribution (a positive kurtosis indicates long tails compared to the normal distribution while negative kurtosis indicates a short tail compared to the normal distribution).
+
+
+A few points to be analysed from the density graph :
+
+* The density curves of the Middle East and North Africa and Sub-Saharan Africa regions are right-skewed (left-tailed), indicating that the mean is greater than the median. This suggests that the distribution is pulled towards higher values. In contrast, North America is the only region that appears to resemble a normal distribution with no skewness, indicating a symmetric distribution. The other regions are right-tailed, indicating that the mean is lower than the median.
+
+
+* All regions exhibit positive kurtosis, indicating heavier tails compared to the normal distribution. This suggests that the distributions have more extreme values or outliers compared to a normal distribution.
+
+
+* The table shows that North America and Western Europe have relatively high means, indicating a higher average democracy index in these regions. Conversely, the Middle East and North Africa region has the lowest mean, indicating a lower average democracy index.
+
+
+* The variance of Asia and Australia is the highest among the regions, indicating a greater spread or variability in the democracy index values. On the other hand, North America countries have the lowest variance, indicating a smaller spread or less variability in the democracy index values.
+
+
+
+
+
+## Question 3
+
+### **a**
+
+I first created a function that receives a data frame and a vector of country names and plot the democracy index trend by those countries for the years 2006,2008-2022. Then, I choose 5 countries in the data set list_by_countries and displayed the plot for the countries chosen.
+
+I created the same function for regions instead of countries and applied the function to all 7 regions.
+
+```{r}
+
+# Function for countries
+
+func_country <- function(df,country_names) {  
+  
+  n_df <- df %>% filter(Country %in% country_names)  # Gets from data set only the countries that were inputted in function
+  meltdf <-  n_df %>% select(Country,years) %>% reshape2::melt()  # Changes data-frame format long wide
+  meltdf$rowid <- 1: dim(n_df)[1]  # Numerating countries
+  names <- meltdf$Country[1:length(country_names)]  # Extracting assignment made of countries and numbers
+  
+   # Ploting trends for countries chosen
+  
+  ggplot(data = meltdf,mapping = aes(x = variable, y = value ,group = factor(rowid))) + 
+    geom_line(aes(color = factor(rowid))) +  # Different lines for different countries
+    labs(y = "Democracy Index", x = "Year", title = "Democracy Index Trends By Countries", subtitle = "As a function of the year", color = "Country" ) +
+    scale_x_discrete(labels = c("2006","2008","2010", "2011", "2012" ,"2013" ,"2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021","2022")) +
+    scale_y_continuous(breaks=seq(0,10,0.5)) +
+    scale_colour_discrete(labels = names)
+}
+
+ # Testing function with 5 countries of our choice
+
+func_country(list_by_country,c("Canada","Afghanistan", "Israel","Brazil", "Palestine")) 
+
+# Same Function, just for regions instead of countries
+
+func_region <- function(df,region_names) {  
+  
+  n_df <- df %>% filter(Region %in% region_names)
+  meltdf <-  n_df %>% select(Region,years) %>% reshape2::melt()
+  meltdf$rowid <- 1: dim(n_df)[1]
+  names <- meltdf$Region[1:length(region_names)]
+  
+  ggplot(data = meltdf,mapping = aes(x = variable, y = value ,group = factor(rowid))) +
+    geom_line(aes(color = factor(rowid))) +
+    labs(y = "Democracy Index", x = "Year", title = "Democracy Index Trends By Regions", subtitle = "As a function of the year", color = "Region" ) +
+    scale_x_discrete(labels = c("2006","2008","2010", "2011", "2012" ,"2013" ,"2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021","2022")) +
+    scale_y_continuous(breaks=seq(0,10,0.5)) +
+    scale_colour_discrete(labels = names)
+}
+
+# Testing function for all 7 regions
+
+func_region(list_by_region,regions)  
+
+```
+
+Analysis of Democracy Index trends by Countries Graph: (Results according to 5 countries shown)
+
+* Canada's democracy index remained relatively stable throughout the years, showing minimal fluctuations compared to other countries. Afghanistan, on the other hand, exhibited significant variations in its democracy index, particularly between 2020 and 2022. This indicates a more turbulent political environment during those years.
+
+
+* Israel is the only country that experienced an increase in its democracy index when comparing the years of 2006 and 2022.
+
+
+* Between 2006 and 2010, Afghanistan, Brazil, and Palestine saw a decrease in their democracy index. This indicates a decline in democratic practices and institutions in those countries during that time frame.
+
+
+
+Analysis of Democracy Index trends by Regions Graph:
+
+
+* When grouping the countries by regions, we can see a more stable trend.
+
+
+* However, we can see a noticeable trend in the democracy decrease of all regions when comparing the years of 2006 and 2022.
+
+
+* We can see, that this year (2022) the regions of Western Europe and North America are grouped together at the top in terms of the democracy index, signifying higher levels of democratic governance. In contrast, the Middle East and North Africa region appears at the bottom, indicating a lower democracy index compared to other regions.
+
+
+
+
+
+### **b** 
+
+To divide the countries into the first 7 groups I used dyplr commands to filter according to specific demands and to add a new column with the maximum and minimum index according to years.
+Then, for the eight group I conditioned countries that were not allocated to groups before.
+Last, I applied the previous function to all groups that display plots for each group
+
+
+```{r}
+
+# Creating a new column that displays the highest and lowest democracy index for each country through the years
+
+list_by_country <- list_by_country %>% 
+  rowwise() %>% 
+  mutate(max_index = max(X2006,X2008,X2010,X2011,X2012,X2013,X2014,X2015,X2016,X2017,X2018,X2019,X2020,X2021,X2022), min_index = min(X2006,X2008,X2010,X2011,X2012,X2013,X2014,X2015,X2016,X2017,X2018,X2019,X2020,X2021,X2022))
+
+# Dividing the countries in different clusters
+
+group1 <- as.data.frame(list_by_country %>% 
+  filter(X2022 - X2006 >= 1.5)) 
+
+group2 <- as.data.frame(list_by_country %>%
+  filter(X2022 - X2006 <= -1.5))
+
+group3 <- as.data.frame(list_by_country %>%
+  filter(X2022 - X2006 < 1.5 & X2022 - X2006 > 0.75))
+
+group4 <- as.data.frame(list_by_country %>%
+  filter(X2022 - X2006 > -1.5 & X2022 - X2006 < -0.75))
+
+group5 <- as.data.frame(list_by_country %>%
+  filter(X2006 - min_index >= 0.75 & X2022 - min_index >= 0.75))
+
+group6 <- as.data.frame(list_by_country %>%
+  filter(max_index - X2006 >= 0.75 & max_index - X2022 >= 0.75))
+
+group7 <- as.data.frame(list_by_country %>%
+  filter(max_index - min_index < 0.5))
+
+# Union of all groups without duplicates
+
+combi_groups <- unique(rbind(group1,group2,group3,group4,group5,group6,group7))  
+
+# Group 8 is formed by countries in the list_by_country data set that are not in the union of all groups from 1 to 8
+
+group8 <- as.data.frame(list_by_country %>%
+  filter(!(Country %in% combi_groups$Country)))  
+
+# Applying the function for all groups
+
+func_country(list_by_country,group1$Country)  # Group 1
+
+func_country(list_by_country,group2$Country)  # Group 2
+
+func_country(list_by_country,group3$Country)  # Group 3
+
+func_country(list_by_country,group4$Country)  # Group 4
+
+func_country(list_by_country,group5$Country)  # Group 5
+
+func_country(list_by_country,group6$Country)  # Group 6
+
+func_country(list_by_country,group7$Country)  # Group 7
+
+func_country(list_by_country,group8$Country)  # Group 8
+
+
+```
+
+
+In the first group we see a big rise between the years of 2006 and 2022. Between 2006 and 2011, the three countries experienced the most significant increase.
+
+In the second group, there was a substantial decline observed between the years 2006 and 2022. In the last quarter of the period, all countries experienced a decrease in the democracy index.
+
+In the third group, we can see a moderate increase in the democracy index between 2006 and 2022.
+
+In the fourth group, we can see a moderate decrease in the democracy index between 2006 and 2022.
+
+The fifth group is characterized by a considerable decrease in the democracy index followed by a subsequent increase.
+
+The sixth group is characterized by a considerable increase in the democracy index followed by a subsequent decrease.
+
+The seventh group is characterized by stability, with little variation observed between the periods.
+
+In the last group, a consistent and slight increase or decrease in the democracy index can be observed.
+
+
+
+## Question 4
+
+For each of the four different regime types (Full democracy, Flawed democracy, Hybrid regime, Authoritarian), I utilized the democracy index data frame of countries to estimate the probability of a country transitioning from one regime type in 2006 to each of the other four regimes in 2022.
+
+I created a matrix for each regime type, displaying the probabilities of transitioning from one regime to another during the years 2006-2022. Subsequently, I visualized the analyzed data using a heat map, which provides a clear and accurate depiction of the trends.
+
+
+```{r}
+
+# Creating a column that specifies which kind of regime each country was in 2006
+
+dftypes_2006 <- list_by_country %>% mutate(type2006 = case_when(( X2006 >= 8.01) ~ "Full democracy", (X2006 >= 6.01 & X2006 <= 8) ~ "Flawed democracy", (X2006 >= 4.01 & X2006 <= 6) ~ "Hybrid regime", (X2006 <= 4) ~ "Authoritarian"))  
+
+# Extract the regime types for 2006 and 2022
+
+regime_types_2006 <- dftypes_2006$type2006
+regime_types_2022 <- list_by_country$`Regime.type`
+
+
+matrix_regimes <- as.data.frame(cbind(regime_types_2006,regime_types_2022))  # Matrix of type regimes in 2006 and 2022
+
+regime_types <- c("Full democracy", "Flawed democracy", "Hybrid regime", "Authoritarian")  # Names of democracy types
+
+
+# Create a empty table to store the probability of each transition
+
+prob_matrix <- matrix(0,nrow = 4, ncol = 4)
+colnames(prob_matrix) <- regime_types
+rownames(prob_matrix) <- regime_types
+
+# Calculates probability for each transition
+
+for (i in 1:4) {
+  reg2006 <- regime_types[i]
+  for (j in 1:4) {
+    reg2022 <- regime_types[j]
+    prob <- sum(matrix_regimes$regime_types_2006 == reg2006 & matrix_regimes$regime_types_2022 == reg2022) / nrow(matrix_regimes)  
+    prob_matrix[i, j] <- prob
+  }
+}  
+
+prob_matrix  # Displaying probabilities table
+
+melt_prob <- melt(prob_matrix)  # Elongates matrix
+
+# Heat map graph
+
+ggplot(as.data.frame(melt_prob),aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) + 
+  labs(y = "Regime Types", x = "Regime Types", title = "Regime Transition Probabilities", subtitle = "Based on countries" , fill = "Probabilities")  
+
+
+```
+
+
+
+This code calculates the transition probabilities between different regime types based on the provided matrix of regime types in 2006 and 2022. It then visualizes the probabilities using a heat map plot created with ggplot2.
+
+From the heat map plot, we can observe that full democracy regimes generally do not transition to authoritarian or hybrid regimes, and similarly, authoritarian regimes do not transition to full democracy. This suggests a lack of radical changes in regime types over time. Instead, there is a convergence with deviations of one category towards the regime type that was prevalent in the country in 2006.
+
+
+
+## Question 5
+
+### **a**
+
+
+First, I loaded the data into R and extracted the relevant tables, removing any irrelevant strings attached. After that, I joined the table of the democracy index by country with these four tables, using the country names as the join key. Finally, I used the head function to display the top five rows of the joined table I created.
+
+
+```{r}
+
+# Scrape the tables from the web pages using the Wikipedia URLs
+
+
+population <- read_html("https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population")
+htmlpopElement <- population %>% html_element("table.sortable")
+list_population <- html_table(htmlpopElement)
+
+# Manual adjusts
+
+list_population <- list_population[-1,]  # Deleting a blank line
+colnames(list_population)[c(1,2,4,7)] <- c("Rank Pop","Country","Percentage Population","Notes Pop")  # Changing column names
+list_population$Country <- gsub("\\s*\\([^()]*\\)","",as.character(list_population$Country))  # Taking out irrelevant strings attached to the country's name
+list_population$Country <- gsub("\u202f","",as.character(list_population$Country))  # Removing Unicode character (Narrow no-break space)
+
+# Scrape the tables from the web pages using the Wikipedia URLs
+
+gdp <- read_html("https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)_per_capita")
+htmlgdpElement <- gdp %>% html_element("table.sortable")
+list_gdp <- html_table(htmlgdpElement)
+
+# Manual adjusts
+
+list_gdp <- list_gdp[-1,]
+colnames(list_gdp)[c(1,3,4,5,6,7,8)]<- c("Country","IMF Estimate", "IMF Year","World Bank Estimate","World Bank Year", "CIA Estimate", "CIA Year")
+list_gdp$Country <- gsub("\\s*\\*","",as.character(list_gdp$Country))
+list_gdp$Country <- gsub("\\s*\\[n 1\\]","",as.character(list_gdp$Country))
+list_gdp$Country <- gsub("\\s*\\([^()]*\\\\s*)","",as.character(list_gdp$Country))
+list_gdp$Country <- gsub("\u202f","",as.character(list_gdp$Country))
+
+
+
+incar <- read_html("https://en.wikipedia.org/wiki/List_of_countries_by_incarceration_rate")
+htmlincarElement <- incar %>% html_element("table.sortable")
+list_incar <- html_table(htmlincarElement)
+list_incar <- list_incar[-1,]
+colnames(list_incar)[c(1,2,4)] <- c("Country","Region Incar","Rate per 100,000")
+list_incar$Country <- gsub("\\s*\\*","",as.character(list_incar$Country))
+list_incar$Country <- gsub("\\s*\\[Note\\]","",as.character(list_incar$Country))
+list_incar$Country <- gsub("\u202f","",as.character(list_incar$Country))
+
+
+
+area <- read_html("https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area")
+htmlareaElement <- area %>% html_element("table.sortable")
+list_area <- html_table(htmlareaElement)
+colnames(list_area)[c(1,2,7)] <- c("Rank Area","Country","Notes Area") 
+list_area$Country <- gsub("\\s*\\([^()]*\\)","",as.character(list_area$Country))
+list_area$Country <- gsub("\u202f","",as.character(list_area$Country))
+
+# Joining the 5 tables together
+
+list_by_country <- full_join(list_by_country,list_population,by = "Country") %>%
+  full_join(list_gdp,by = "Country") %>%
+  full_join(list_incar, by = "Country") %>%
+  full_join(list_area,by = "Country")   
+
+head(as.data.frame(list_by_country),5)  # Displaying 5 first rows
+
+
+```
+
+Now, we have the data presenting the GDP per capita, population size, incarnation rates and land area of each country in one data set.
+
+### **b**
+
+In this chunk, I first fitted the data to perform a basic regression analysis that examines the correlation and predictive ability of a country's GDP with its democracy index. Next, I created a scatter plot of the GDP (PPP) per capita on the y-axis against the democracy index at 2022. I then added the regression line to the plot. Additionally, I analyzed the relationship between the incidence rate (per 100,000) and the variables using regression analysis to draw conclusions.
+
+
+```{r}
+
+list_by_country$`CIA Estimate` <- gsub(",","",list_by_country$`CIA Estimate`)  # Deleting "," characters in column
+list_by_country$`CIA Estimate`<- as.numeric(list_by_country$`CIA Estimate`)  # Converting to numeric
+reg1 <- lm(formula = `CIA Estimate`~X2022,data = list_by_country,na.rm = TRUE)  # Simple linear regression
+summary(reg1)
+
+ggplot(data = list_by_country,mapping = aes(x = X2022, y= `CIA Estimate`,na.rm = TRUE)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(500,140000,5000)) +
+  labs(x = "Democracy Index in 2022", title = "GDP per capita vs Democracy Index", subtitle = "Fitted into a regression line" ) +
+  geom_abline(slope = reg1$coefficients[2], intercept = reg1$coefficients[1],color = "blue") 
+
+
+list_by_country$`Rate per 100,000`<- gsub("—",NA,list_by_country$`Rate per 100,000`)  # Substituting "-" characters to NA
+list_by_country$`Rate per 100,000`<- as.numeric(list_by_country$`Rate per 100,000`)  # Converting to numeric
+reg2 <- lm(formula = `Rate per 100,000`~X2022,data = list_by_country,na.rm = TRUE)
+summary(reg2)
+
+ggplot(data = list_by_country,mapping = aes(x = X2022, y= `Rate per 100,000`,na.rm = TRUE)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(10,650,100)) +
+  labs(x = "Democracy Index in 2022",y = "Incarceration Rate Per 100,000 People", title = "Incarceration Rate vs Democracy Index", subtitle = "Fitted into a regression line" ) +
+  geom_abline(slope = reg2$coefficients[2], intercept = reg2$coefficients[1],color = "blue") 
+
+
+```
+
+
+
+Analysis of the GDP x Democracy Index at 2022 graph:
+
+
+From the regression analysis, it appears that there is a positive correlation between the democracy index of a country in 2022 and its GDP per capita. The estimated slope coefficient of 5279.8 suggests that, on average, for every one-unit increase in the democracy index, the GDP per capita increases by $5279.8.
+
+
+However, it is important to note that the standard error of the slope coefficient is relatively high at 599.5, indicating that the observed data points are spread out around the regression line. This suggests a certain degree of uncertainty in predicting the exact relationship between the democracy index and GDP per capita. Therefore, it suggests that we would need to investigate other factors that could influence the relationship between the democracy index and GDP per capita.
+
+
+Despite the uncertainty, the p-value of 1.7e-15 (very small) indicates that the slope coefficient is statistically significant. Therefore, we can reject the null hypothesis that the slope is equal to zero, providing evidence of a positive relationship between a country's democracy index and its GDP per capita.
+
+
+
+
+Analysis of the Incarceration Rate x Democracy Index at 2022 graph:
+
+
+Based on the regression analysis, it suggests a weak or no correlation between the democracy index of a country in 2022 and its incarceration rate per 100,000 people. The estimated slope coefficient of -0.7536 suggests that, on average, there is a slight decrease of 0.75 in the incarceration rate for every unit increase in the democracy index.
+
+
+However, it's important to note that the high standard error of the slope coefficient (3.7828) indicates a considerable degree of uncertainty in predicting the exact relationship between the democracy index and incarceration rate. The wide spread of data points around the regression line reflects the variability in the relationship.
+
+
+The p-value of 0.842 suggests that we fail to reject the null hypothesis, indicating that there is insufficient evidence to support a significant correlation between the country's democracy index and the incarceration rate.
+
+Furthermore, the intercept of 158.2880 represents the predicted incarceration rate per 100,000 people in the absence of any democracy index.
+
+
+In summary, the analysis suggests a weak or non-existent correlation between the democracy index and incarceration rate. However, the high uncertainty and non-significant p-value emphasize the need for further investigation and consideration of other factors that may influence the incarceration rate.
+
+
+
+
+## Question 6
+
+### **a**
+
+In this chunk, we consider X as a random variable representing the current GDP (PPP) per capita of a randomly selected country. The countries are selected uniformly at random from all countries worldwide. I computed the cumulative distribution function (CDF) of X using the current GDP per capita data of the randomly selected countries.
+
+Finally, after calculating the CDF, I used all the data to create a plot of the Empirical CDF of GDP (PPP) per capita.
+
+
+Calculation and Creation the empirical Cumulative Distribution Function (CDF):
+```{r}
+# Extract GDP (PPP) per capita values for X
+gdp_per_capita <-as.numeric(list_by_country$`CIA Estimate`)
+
+# Sort the GDP (PPP) per capita values in ascending order
+sorted_gdp <- sort(gdp_per_capita)
+
+# Compute empirical cumulative probabilities of the sorted gdp
+n <- length(sorted_gdp)
+cdf_x <- (1:n) / n
+
+#Creation of the plot for empirical CDF for X
+plot(sorted_gdp, cdf_x, type = "s", xlab = "GDP (PPP) per capita", ylab = "CDF",
+     main = "Empirical CDF of GDP (PPP) per capita (X)", na.rm = TRUE)
+
+quantiles_x <- quantile(sorted_gdp)  # Quantiles for X
+
+```
+
+
+
+### **b**
+
+In this chunk, I first cleaned the data to later be able to work with it - operations like removing a character of the column and converting column to numeric were used.
+
+Then, I extracted the world population to calculate the probability of each country be selected to represent the GDP of the country based on the population of each country.
+
+With those probabilities, I arranged the CIA Estimate of each country and calculated the cumulative probabilities by taking the cumulative sum of the probabilities and dividing them by the sum of all probabilities. Then, I ploted the CDF where a person is selected uniformly at random from all world population.
+
+
+```{r}
+# Manual Adjusts
+
+list_by_country$Population <- gsub(",", "",list_by_country$Population)
+list_by_country$Population <- as.numeric(list_by_country$Population)
+
+# Extracts the World population
+
+all_pop <- subset(list_by_country,Country == "World")
+all_pop <- all_pop$Population
+
+# Calculating probability of each country be selected
+
+list_by_country <- list_by_country %>% 
+  mutate(prob_pop = Population/all_pop)
+
+# New data without the world row
+
+list_by_country2 <- list_by_country %>% 
+  filter(Country != "World")
+
+# Choosing desired columns - gdp and probabilities
+
+list_by_country2 <- list_by_country2 %>%
+  select(`CIA Estimate`,prob_pop) 
+
+# Drops NAs
+
+list_by_country2 <- drop_na(list_by_country2,c(`CIA Estimate`,"prob_pop"))
+
+# Calculating the cumulative probabilities
+
+list_by_country2 <- list_by_country2 %>% arrange(`CIA Estimate`)
+list_by_country2<- list_by_country2 %>% mutate(cumulative_prob = cumsum(prob_pop)/sum(prob_pop))
+
+# Ploting the CDF
+ggplot(list_by_country2, aes(x = `CIA Estimate`)) +
+  stat_ecdf(aes(y = cumulative_prob)) +
+  labs(title = "Empirical CDF of GDP per capita", x = "GDP per Capita", y = "Probability", subtitle = "Based on randomly selected individuals from all world population") +
+  scale_x_continuous(breaks = seq(min(list_by_country2$`CIA Estimate`), max(list_by_country2$`CIA Estimate`), 5000)) +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+# Calculating quantiles
+
+quantile_y <- quantile(list_by_country2$`CIA Estimate`, weights = list_by_country2$cumulative_prob)
+
+
+```
+
+
+### **c**
+
+In this chunk, I first cleaned the data to later be able to work with it - operations like removing characters of the column and converting column to numeric were used.
+
+Then, I extracted the world area land in kmˆ2 to calculate the probability of each country be selected to represent the GDP of the country based on the area land of each country.
+
+With those probabilities, I arranged the CIA Estimate of each country and calculated the cumulative probabilities by taking the cumulative sum of the probabilities and dividing them by the sum of all probabilities.
+
+Finally, I built the CDF of the current GDP per capita of a randomly selected person in the world and ploted it, where the location of the person is selected uniformly for all land area in the world.
+
+
+```{r}
+# Manual Adjusts
+
+list_by_country <- list_by_country %>% rename(land_area = "Landin km2 (mi2)")
+list_by_country$land_area <- gsub("\\s*\\([^()]*\\)","",list_by_country$land_area) # Gets rid of the parenthesis and everything inside of it
+list_by_country$land_area <- gsub("\u202f","",list_by_country$land_area)  # Gets rid of unicode character 
+list_by_country$land_area <- gsub(",","",list_by_country$land_area)
+list_by_country$land_area <- ifelse(list_by_country$land_area == "", NA, list_by_country$land_area)
+list_by_country$land_area <- as.numeric(list_by_country$land_area)
+
+# Extracting world land area
+all_land <- subset(list_by_country,Country == "World")
+all_land <- all_land$land_area
+
+# Adds probability of each country according to land area
+
+list_by_country <- list_by_country %>% 
+  mutate(prob_land = land_area/all_land)
+
+# New data set with columns of the probabilities and gdp
+
+list_by_country3 <- list_by_country %>% 
+  filter(Country != "World") %>%
+  mutate(prob_land = land_area/all_land) %>%
+  select(prob_land,`CIA Estimate`)
+list_by_country3 <- drop_na(list_by_country3,c(`CIA Estimate`,"prob_land"))
+
+# Calculating the cumulative probabilities
+list_by_country3 <- list_by_country3 %>% arrange(`CIA Estimate`)
+list_by_country3<- list_by_country3 %>% mutate(cumulative_prob = cumsum(prob_land)/sum(prob_land))
+
+ggplot(list_by_country3, aes(x = `CIA Estimate`)) +
+  stat_ecdf(aes(y = cumulative_prob)) +
+  labs(title = "Empirical CDF of GDP per capita", x = "GDP per Capita", y = "Probability", subtitle = "Based on randomly selected individuals from all land area") +
+  scale_x_continuous(breaks = seq(min(list_by_country3$`CIA Estimate`), max(list_by_country3$`CIA Estimate`), 5000)) +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+
+quantile_z <- quantile(list_by_country3$`CIA Estimate`, weights = list_by_country3$cumulative_prob)
+
+
+```
+
+```{r}
+# Quantiles of X,Y and Z
+
+quantiles_x
+quantile_y
+quantile_z
+
+```
+
+In summary, the 3 variables are different : The differences in the distribution of per capita GDP among X, Y, and Z can be attributed to the inclusion of land area in Z, the variation in population sizes and the focus on individuals rather than countries in Y, and economic conditions across countries (X). These factors contribute to the disparities observed in the median and percentiles of the three variables.
+ 
+Comparing the median percentiles of X,Y and Z
+
+The median value for Y is slightly lower than the median value for X, indicating a slightly lower GDP per capita when considering individuals selected uniformly at random from the world population compared to countries selected uniformly at random.
+The median value for Z is also slightly lower than the median value for X, indicating a slightly lower GDP per capita when considering individuals selected uniformly at random from all land areas on Earth. (Median of X $>$ Median of Y $>$ Median of Z)
+
+
+Comparing the 25%  percentiles of X,Y and Z
+
+In this case, the 25th percentile of X is 5,475, while the 25th percentiles of Y and Z are lower. Y has a 25th percentile of 5,350, and Z has a 25th percentile of 5,300. This indicates that a randomly selected person's GDP per capita (Y) or a person's GDP per capita based on the location within the land area (Z) tend to be lower than the GDP per capita of randomly selected countries (X). (25 percentile of X $>$ 25 percentile of Y $>$ 25 percentile of Z)
+
+Comparing the 75% percentiles of X,Y and Z
+
+From these results, we can conclude that X has a slightly lower 75th percentile compared to Y, but both X and Y have higher values compared to Z. This indicates that when randomly selecting countries (X) or individuals from the world population (Y), the GDP per capita tends to be higher compared to randomly selecting individuals based on their location within the land area (Z). (75 percentile of Y $>$ 75 percentile of X $>$ 75 percentile of Z)
+
+In summary, Z demonstrates lower GDP per capita values compared to the other random variables, as evidenced by its lower medians and lower percentiles. This suggests that the GDP per capita distributions for individuals selected from land areas tend to be lower overall than the distribution for countries and individuals. These differences can be attributed to the sampling criteria and variations in economic development, population distribution, and geographic factors.
+
+Regarding the variance, among the variables X, Y, and Z, Y has the greatest variance. This is evident from the larger range between the 25th and 75th percentiles of Y compared to X and Z. The larger variance in Y indicates a greater diversity in GDP per capita values among individuals from different countries and regions.
+ 
+
+
+## Question 7
+
+In this exercise, I used the rworldmap package to display the world map showing each country colored as the average democracy index across the years and as the difference in the index between 2022 and 2006.
+For that, I created 2 columns that represented the average index and the difference of the indexes between 2022 and 2006. 
+I did some manual adjustments to match countries in the data set to the world map and then displayed the countries according to a specific color pallete.
+
+
+```{r}
+
+# Adding column that represent the mean across the years on the democracy index
+
+list_by_country <- list_by_country %>%
+  rowwise() %>%  # Looking according to rows
+  mutate(Average_Democracy = mean(c_across(all_of(years)),na.rm = TRUE))
+
+# Manual Adjusts
+
+list_by_country$Average_Democracy <- gsub("NaN", NA,list_by_country$Average_Democracy)
+list_by_country$Average_Democracy <- as.numeric(list_by_country$Average_Democracy)
+
+# Vector of all the countries 
+
+theCountries <- list_by_country$Country
+
+# Selecting the columns referent to the average index and country's name
+
+Countries_dem <- list_by_country %>%
+  select(Country,Average_Democracy)
+
+# Using package to match countries in data set to the countries in the world map and attribute their average democracy index
+
+Average_dem_map <- joinCountryData2Map(Countries_dem,joinCode = "NAME",nameJoinColumn = "Country")
+
+# Color Palette
+
+colpalette <- c("gray0","saddlebrown","red4","darkorange3","darkgoldenrod1","yellow","darkolivegreen1","darkolivegreen3","mediumseagreen","darkgreen")
+
+# Builts the map
+
+mapAver <- mapCountryData(Average_dem_map,nameColumnToPlot = "Average_Democracy",catMethod =c(0,1,2,3,4,5,6,7,8,9,10), missingCountryCol = gray(.8),colourPalette  = colpalette, mapTitle = "Average Democracy Index by Country")  # missing countries are colored as gray
+
+do.call(addMapLegend,c(mapAver,legendLabels = "all")) # Adding "legend" to each color as a function of the average democracy index
+
+# Adding column that represent the difference of democracy index between 2022 and 2006
+
+list_by_country <- list_by_country %>%
+  rowwise() %>%  # Looking according to rows
+  mutate(Diff_index = (X2022 - X2006))
+
+# Manual adjusts 
+
+list_by_country$Diff_index <- as.numeric(list_by_country$Diff_index)
+
+# Extracting countries names
+
+theCountries2 <- list_by_country$Country
+
+# Selecting the columns that are going to be used for the map
+
+Countries_diff <- list_by_country %>%
+  select(Country,Diff_index)
+
+Diff_map <- joinCountryData2Map(Countries_diff,joinCode = "NAME",nameJoinColumn = "Country")
+
+# Defining the lower and upper limit of the difference in the democracy's index
+
+breaks_diff = seq(floor(min(Countries_diff$Diff_index,na.rm = TRUE)),ceiling(max(Countries_diff$Diff_index,na.rm = TRUE)),1) 
+
+# Built-in Color Pallete
+
+colpalette2 <- hcl.colors(length(breaks_diff),palette = "BrBG")
+
+# Builts the map 
+
+mapDiff2 <- mapCountryData(Diff_map,nameColumnToPlot = "Diff_index",catMethod = breaks_diff, missingCountryCol = "white",colourPalette  = colpalette2, mapTitle = "Difference in Democracy Index Between 2022 and 2006 by Country")  # missing countries are colored as white
+
+do.call(addMapLegend,c(mapDiff2,legendLabels = "all"))  # Adding "legend" to each color as a function of the difference in the democracy index
+
+```
+
+
+
+Analysis of the Average Democracy Index World Map:
+
+The World Map is color-coded on a scale of 0 to 10 (like the original rank), representing the Average Democracy Index of each country.  It is important to clarify that countries and continents with missing data are colored in gray on this map, such as Greenland and Antarctica. The intention was to make the color ranking as similar as possible to the original one on Wikipedia, which displays the democracy index for 2022 only. When comparing this World Map to the original one on Wikipedia, we observe that despite using the average democracy index, the results remain similar. This is because, as depicted in the heat map discussed in question 4, significant shifts in the regime types are rare. 
+Additionally, we can observe a relatively low average democracy index in countries located in the Asian and African continents, such as Turkmenistan and Uzbekistan. In contrast, countries in North America, like Canada and the United States, have a higher average democracy index. 
+
+
+Analysis of the Difference in Democracy Index World Map:
+
+The World Map is color-coded on a scale of -4 to 3, representing the minimum and maximum interval's difference in the Democracy Index between the years 2022 and 2006. The color gradient is designed to depict smaller differences in lighter colors and larger differences in darker shades. It is important to note that countries and continents with missing data, such as Greenland and Antarctica, are represented in white on the map.
+
+Upon analyzing the map, distinct patterns can be observed across continents. In the Africa continent, there is a mix of countries with a positive difference, indicating an increase in the democracy index like Angola, and countries with a negative difference, like Mali. On the other hand, in the Asia continent we can highlight Russia which is characterized by a negative difference, suggesting a decline in the democracy index between the two years. These contrasting trends highlight the diverse paths of democratic development in different regions.
+
+Furthermore, it can be observed that democratic countries tend to exhibit less variation in the Democracy Index between 2022 and 2006, whereas less democratic countries tend to have a larger difference in democracy during that period.
+
+
+
+## Question 8
+
+
+### **a**
+
+In this chunk I joined the previous joined list_by_country data frame with the components data frame. I then did some manual adjusts to be able to extract data as numeric data and displayed the first 5 rows of the new joined data set.
+To build a heat map I first created a correlation matrix with the names of the five democracy components - representing the rows and columns. Then, I built a function to calculate the correlation between each element of the matrix. I used the command melt to elongate the matrix and displayed it as a heat map.
+
+```{r}
+
+# Changing column names of the 5 democracy components
+
+colnames(components)[c(7,8,9,10,11)] <- c("Electoral process","Functioning of government","Political participation","Political culture","Civil liberties")
+
+# Join the components table by the country column
+
+list_by_country <- full_join(list_by_country,components,by = "Country")
+
+# Manual adjusts that drops type of regime and convert columns to numeric
+
+list_by_country <- as.data.frame(head(list_by_country,-4))
+list_by_country$`Electoral process` <- as.numeric(list_by_country$`Electoral process`)
+list_by_country$`Functioning of government` <- as.numeric(list_by_country$`Functioning of government`)
+list_by_country$`Political participation` <- as.numeric(list_by_country$`Political participation`)
+list_by_country$`Political culture`<- as.numeric(list_by_country$`Political culture`)
+list_by_country$`Civil liberties` <- as.numeric(list_by_country$`Civil liberties`)
+
+# Displays top five rows 
+
+head(list_by_country,5)
+
+# Creating correlation matrix
+
+corr_matrix <- matrix(0,nrow = 5, ncol = 5)
+demo_comp <- c("Electoral process","Functioning of government","Political participation","Political culture","Civil liberties")
+colnames(corr_matrix) <- demo_comp
+rownames(corr_matrix) <- demo_comp
+
+
+# Calculates correlation between democracy component
+
+for (i in 1:5) {
+  element <- demo_comp[i]
+  for (j in 1:5) {
+    element2 <- demo_comp[j]
+    correlation <- cor(list_by_country[element],list_by_country[element2],use = "complete.obs")  
+    corr_matrix[i, j] <- correlation
+  }}
+
+# Displays correlation matrix
+
+corr_matrix
+
+melt_corr <- melt(corr_matrix)  # Elongates matrix
+
+# Heat map of the correlation matrix
+
+ggplot(as.data.frame(melt_corr),aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(lwd = 1.5,
+            linetype = 1) + 
+  labs(y = "Democracy components", x = "Democracy Components", title = "Democracy Components Correlation", subtitle = "Based on countries" , fill = "Correlation") +
+  scale_fill_gradient(low = "white",high = "darkred") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), legend.box.background = element_rect(color = "black", fill = "transparent"))
+
+
+```
+
+
+Analysis of the Correlation Heat Map:
+
+
+The correlation table presents the pairwise correlations between different components of democracy. The values in the table represent the strength and direction of the correlations, that could range from -1 to 1. It is notable that the minimum correlation among the components is approximately 0.5 indicating a generally high level of correlation.
+
+
+However, when examining the heat map, we observe that Political Culture and Electoral Process show the weakest correlation, suggesting that the influence of culture on politics and elections is not as pronounced compared to other factors. 
+
+
+On the other hand, Civil liberties and Electoral Process have the strongest correlation of all , meaning that elections and civil freedoms ,such as freedom of press, freedom of religion, freedom of expression,freedom of speech and others, are strongly correlated. Therefore we can infer that countries with well-functioning electoral processes also tend to have greater respect for civil liberties.
+
+
+
+### **b**
+
+I ran a simple regression when y = GDP and x's are equal to the 5 democracy components and displayed it summary.
+To detect outliers, I used the function in exercise 2a and display the countries.
+Next, I used the residuals function to extract the residuals of our regression and calculate the 5 biggest and lowest residuals that I used to extract the countries names according to their residuals.
+
+
+```{r}
+
+# Runs regression 
+
+reg3 <- lm(formula = `CIA Estimate`~`Electoral process`+`Functioning of government`+`Political participation`+`Political culture`+`Civil liberties`,data = list_by_country,na.rm = TRUE)
+
+# Displaying summary's regression
+
+summary(reg3)
+
+# Extracting residuals
+
+residuals <- reg3$residuals
+
+# Detects outliers according to the residuals and display outliers countries
+
+list_by_country$Country[is_outlier(residuals)]
+
+# Biggest and Lowest 5 residuals 
+
+high <- tail(sort(reg3$residuals),n = 5)
+low <- head(sort(reg3$residuals),n=5)
+
+# Match the residual to the country
+
+list_by_country$Country[as.numeric(names(high))]  # 5 highest countries residuals
+list_by_country$Country[as.numeric(names(low))]  # 5 lowest countries residuals
+
+
+```
+
+
+
+At a significance level $\alpha = 0.01$ :
+If p-value $< \alpha$, then the coefficient is significant at this level. Therefore, we conclude that Electoral process, Functioning of government and Political culture are significant coefficients at this level.
+
+In our opinion, there are several other factors that contribute to a country's GDP per capita such as education, population size, the presence of natural resources like oil,gas and others. 
+
+
+Analysis of the Regression:
+
+The regression model was performed to examine the relationship between the CIA Estimate of GDP per capita and various democracy components.
+
+
+At a significance level of 0.01 we can conclude that the effect of electoral process in the country's GDP per capita is statistically significant and negative(an improvement in the electoral process is associated with a decrease in GDP per capita). Moreover, we predict that on average for every one-unit increase in the Electoral Process, the GDP per capita decreases by 2990.1 dollars. This finding contradicts our initial expectation that an increase in the Electoral Process would lead to an increase in the GDP of the country. 
+
+On the other hand, we infer that the Function of government and Political Culture have a statistically significant and positive influence in the country's GDP per capita (a better functioning of the government and a positive political culture are associated with an increase in GDP per capita). We predict that on average for every one-unit increase in the Function of government, the GDP per capita increases by 4905 dollars while for every one-unit increase in the Political Culture, the GDP per capita increases by 2722.1 dollars.
+
+Overall, the analysis suggests that the electoral process has a negative effect on GDP per capita, while the functioning of government and political culture have positive effects. However, none of the other democracy components show statistically significant associations with GDP per capita. This indicates that there is not enough evidence in the regression to support whether these components have an influence on GDP or whether they do not have a significant impact.
+
+
+
+
