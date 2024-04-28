@@ -1,0 +1,940 @@
+---
+title: "52414, 2022-23: Home Exam - Gabriela Cohen Hadid"
+output:
+  
+html_document: default
+
+pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+### Submission Instructions (Please read carefully)   
+
+
+
+The exam will be submitted **individually** by uploading the solved exam `Rmd` and `html` files to the course `moodle`. 
+
+Please name your files as `52414-HomeExam_2022_23_ID.Rmd` and `52414-HomeExam_2022_23_ID.html` where `ID` is replaced by your ID number (do **not** write your **name** in the file name or in the exam itself).
+
+
+
+Once you click on the `moodle` link for the home exam, the exam will start and you have three days (72 hours) to complete and submit it. 
+
+The exam will be available from July 2nd, at 9am. The last submission time is July 7th at 5pm. <br>
+
+You may use all course materials, the web and other written materials and R libraries. 
+
+You are NOT allowed to discuss any of the exam questions/materials with other students. 
+
+
+
+
+
+**Analysis and Presentation of Results:**
+
+
+
+Write your answers and explanations in the text of the `Rmd` file (*not* in the `code`). <br>
+
+The text of your answers should be next to the relevant code, plots and tables and refer to them, and not at a separate place at the end. <br>
+
+You need to explain every step of your analysis. When in doubt, a more detailed explanation is better than omitting explanations. 
+
+
+
+Give informative titles, axis names and names for each curve/bar in your graphs. 
+
+In some graphs you may need to change the graph limits. If you do so, please include the outlier points you have removed in a separate table.  <br>
+
+Add informative comments explaining your code <br>
+
+
+
+Whenever possible, use **objective** and **specific** terms and quantities learned in class, and avoid **subjective** and **general** non-quantified statements. For example: <br>
+
+`Good:` "We see a $2.5$-fold increase in the curve from Jan. 1st to March 1st". <br>
+
+`Bad:` "The curve goes up at the beginning". <br>
+
+`Good:` "The median is $4.7$. We detected five outliers with distance $>3$ standard deviations from the median". <br>
+
+`Bad:` "The five points on the sides seem far from the middle". 
+
+
+
+Sometimes `Tables` are the best way to present your results (e.g. when asked for a list of items). Exclude irrelevant
+
+rows/columns. Display clearly items' names in your `Tables`.
+
+
+
+Show numbers in plots/tables using standard digits and not scientific display. 
+
+That is: 90000000 and not 9e+06.  
+
+Round numbers to at most 3 digits after the dot - that is, 9.456 and not 9.45581451044
+
+
+
+Some questions may require data wrangling and manipulation which you need to 
+
+decide on. The instructions may not specify precisely the exact plot you should use
+
+(for example: `show the distribution of ...`). In such cases, you should decide what and how to show the results. 
+
+
+
+When analyzing real data, use your best judgment if you encounter missing values, negative values, NaNs, errors in the data etc. (e.g. excluding them, zeroing negative values..) and mention what you have done in your analysis in such cases. 
+
+
+
+Required libraries are called in the `Rmd` file. Install any library missing from your `R` environment. You are allowed to add additional libraries if you want. 
+
+If you do so, **add them at the start of the Rmd file, right below the existing libraries, and explain what libraries you've added, and what is each new library used for**. 
+
+
+
+This is an .Rmd file. Copy it with your mouse to create and Rmd file, and edit the file to include your questions.
+
+
+
+
+
+
+
+Good luck!
+
+
+
+##############################################################################
+
+```{r, echo = FALSE, results = 'hide', warning=FALSE, message=FALSE}
+
+
+library(maps)
+
+library(tidyverse)
+
+library(rvest)  # for html
+
+library(uniformly) # for sampling uniformly from the sphere 
+
+library(lubridate)  # for parsing time 
+
+library(e1071) # skewness and kurtosis
+
+library(maditr)
+
+library(data.table)
+
+library(caTools)
+
+library(gridExtra)  # Show plots side by side in exercise 1.b and in 2.f
+
+library(knitr)  # To display tables and infos that were excluded from the graph in question 2.c
+
+
+
+
+
+
+options("scipen"=999, "digits"=3)  # avoid scientific display of digits. Take 3 digits. 
+```
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+## Q1. Random permutations   
+
+
+
+![](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*C8JOlHLv6F7IMD0vT3yDSg@2x.png)
+
+
+
+In this question we study some properties of random **permutations**. A permutation of $n$ elements is a vector $v \in \{1,2,..,n\}^n$ such that $\forall i \neq j$ also $v(i) \neq v(j)$. For example, the vector $v = (3,4,1,5,2)$ is a permutation of $5$ elements. 
+
+The set of permutations on $n$ elements is denoted $S_n$, and has size $|S_n|  = n!$. We consider here radnom sampling of permutation, i.e. a uniform distribution over all $n!$ permutations, where the probability of each permutation being chosen is $\frac{1}{n!}$.
+
+
+
+
+
+a. (Confused secretary Problem): 
+
+A secretary has $n$ letters and $n$ envelopes with addresses written on them. 
+
+The secretary mixes the letters and puts each letter in a *random* envelope. 
+
+Estimate the probability that *no* letter was sent to the correct address for $n=100$, by running $10,000$ simulations of this process. 
+
+
+
+b. For a permutation $v \in S_n$,  a cycle of length $k$ is a vector of integers $(a_1, a_2, a_3, a_4, .., a_k)$ such that $v(a_1) = a_2, v(a_2) = a_3, .., v(a_{k-1})=a_k$ and $v(a_k) = 1$. For example, for the permutation $v = (3,4,1,5,2)$ we have the cycle $(1,3)$ of length $2$ because $v(1) = 3$ and $v(3) = 1$. We also have the cycle $(2,4,5)$ of length $3$, because $v(2) = 4, v(4) = 5$ and $v(5)=2$. See also another example of the cycles of a permutation in the figure above.  <br>
+
+Let $X_k$ be the number of cycles of length $k$ in a random permutation of length $n$ selected uniformly from $S_n$.  
+
+Estimate $E[X_k]$ for any $k=1,2,..,n$ for $n=100$ and $10,000$ simulations. 
+
+Plot your estimates $\hat{E}[X_k]$ as a function of the cycle length $k$.  <br>
+
+Next, perform a log transformation to the estimates and plot $log(\hat{E}[X_k])$ vs. $log(k)$. 
+
+Fit a simple linear regression model to the log-transformed data add the regression line to the plot. 
+
+Use the fitted model to deduce a formula for the expectation, i.e. a function $g(k)$ such that $E[X_k] = g(k)$. 
+
+
+
+c. For a random permutation of length $n=100$, Let $p_{12}$ be the probability that the values $1$ and $2$ are in the same cycle? 
+
+Estimate this probability using $10,000$ simulations. 
+
+Denote your estimator by $\hat{p}_{12}$. Estimate also the standard deviation of your estimator, 
+
+i.e. provide and estimate $\hat{\sigma}(\hat{p}_{12})$ of $\sigma(\hat{p}_{12})$.
+
+
+
+**Solutions: QU. 1**
+
+
+
+## A
+
+In this exercise, I first sampled a random permutation to be the correct permutation.
+Then, for the 10,000 simulations I counted for how many indexes the correct and random permutation match.
+
+Finally, to calculate the probability that no letter was sent to the correct address I used the sum function to count in how many simulations the count is equal to zero and divided by the total amount of simulations.
+
+```{r}
+
+set.seed(1234)
+
+n = 10000
+vect <- 1:100
+correct_perm <- sample(vect)  # Correct random permutation to put letters
+count <- rep(0,times = n)  
+
+for (i in 1:n) {
+  empirical_perm <- sample(vect)
+  count[i] <- sum(empirical_perm==correct_perm)  # Counts how many indexes match the correct and empirical permutation
+}
+
+sum(count == 0)/n  # Probability that no letter was sent to the correct address
+
+
+```
+
+In this exercise we received that the probability that no letter was sent to the correct address is 36.9%. Meaning that for 100 tries to send the letter in random envelops approximatelly 37 of those tries will result in no matching letters and addresses.
+
+## B
+
+For this exercise, I first initialized an empty matrix (all values are zero) to represent the number of cycles $X_k$ of length $k$. Where the columns are lengths of the cycles (from 1 to 100) and all row is a different simulation.
+
+The function count_cycles_by_length counts the lengths of cycles in a permutation. The algorithm is the following:
+
+The algorithm counts the lengths of cycles in a given permutation.
+It initializes variables for tracking visited elements and storing cycle lengths.
+It iterates through each element of the permutation.
+For each unvisited element, it starts a new cycle and increments the cycle length.
+It marks visited elements and updates the pointer to the next element.
+When a cycle is completed, it appends the cycle length to the list.
+The algorithm continues until all elements have been visited.
+The result is a list of cycle lengths found in the permutation.
+
+Then I ran a loop for all simulations, calculated the column sum for each column and to receive the average (estimated expected value) I divided that sum by the number of simulations.
+
+Then, I presented the plot of the estimated expected values and perfomed a log transformation (for both estimates and cycle length). In that transformation I applied a simple linear regression and deduced the formula by calculating the exponential of the Y predict for a log transformation.
+
+
+```{r}
+
+set.seed(2222)
+
+cycles_lenmatrix <- matrix(0,nrow = n,ncol = 100)  # Initializing
+colnames(cycles_lenmatrix) <- 1:100  # Lengths
+
+
+count_cycles_by_length <- function(perm) {
+  num <- length(perm)
+  visited <- rep(FALSE, num)  # whether the elements were already visited
+  cycle_lengths <- c()
+  
+  for (i in 1:num) {  # iterated through each element of the permutation
+    if (!visited[i]) {  # Elements that weren't visited yet
+      cycle_length <- 0  # if it has not been visited, initiates cycle_length  = 0
+      j <- i  # pointer
+      
+      while (!visited[j]) {  # loop that continues until the current element "j" is visited
+        visited[j] <- TRUE  # marks the element as visited 
+        j <- perm[j]  # updates "j" to the next element according to the permutation
+        cycle_length <- cycle_length + 1  #  increment "cycle_length" by 1
+      }
+      
+      if (cycle_length > 0) {  # if a cycle was found
+        cycle_lengths <- c(cycle_lengths, cycle_length)  # appends the cycle length to the "cycle_lengths" vector
+      }
+    }
+  }
+  
+  cycle_counts <- table(cycle_lengths)  # frequencies of each cycle length
+  cycle_counts
+}
+
+
+for (i in 1:n){
+  
+  emp_2 <- sample(vect)
+  result <- t(as.matrix(count_cycles_by_length(emp_2),nrow = 2))  # Transforms in a matrix where the columns are the cycle lengths and each element is the quantity
+  cycles_lenmatrix[i,colnames(result)] <- as.vector(row(result))  # Concatenates results into overall simulation matrix
+  
+}
+
+sum_col <- colSums(cycles_lenmatrix)  # How many there are for each cycle length
+column_mean <- sum_col/n  # E[X_k]
+
+df_mean <- data.frame(cycle_length = vect, estimate = column_mean)
+
+plot1 <- ggplot(data = df_mean, aes(x = cycle_length, y = estimate)) +
+  geom_point(stat = "identity") +
+  xlab("Cycle Length") +
+  ylab("Estimate E[X_k]") +
+  labs(title = "Estimates of E[X_k]", subtitle =  "for different cycle lengths") +
+  scale_y_continuous(breaks=seq(0,1,0.1)) 
+
+plot1
+  
+
+log_trans <- df_mean %>%
+  mutate(log_estimate = log(estimate),log_cycle = log(cycle_length))
+
+plot2 <- ggplot(data = log_trans, aes(x = log_cycle, y = log_estimate)) +
+  geom_point(stat = "identity",width = 0.1) +
+  xlab("Log Cycle Length") +
+  ylab("Estimate log(E[X_k])") +
+  labs(title = "Estimates of log(E[X_k])" , subtitle = "for different log cycle lengths" ) 
+
+grid.arrange(plot1,plot2,ncol = 2)
+
+log_reg <- lm(formula = log_estimate ~ log_cycle, data = log_trans)
+
+plot2 + geom_abline(intercept = coef(log_reg)[1], slope = coef(log_reg)[2], color = "red")
+
+intercept <- unname(log_reg$coefficients[1])
+slope <- unname(log_reg$coefficients[2])
+
+expected_value <- function(k){
+  return(exp(intercept + slope * log(k)))
+}  # Function for the expectation E[X_k]
+
+
+
+```
+
+In the code, the first plot displays the estimated values of the mean cycle length ($E[X_k]$) for different cycle lengths. The graph exhibits a similar shape to that of an exponential distribution density, indicating that the expected value of X_k decreases rapidly with the increase in the cycle length (non-linear). 
+
+When applying the log transformation to the data and plotting the results in the second graph, the x-axis becomes non-continuous with some empty values. This transformation, resulting in an inverted mirror triangle shape, enables us to apply a more suitable linear regression model.
+
+We can observe that the regression line applied to the log graph, with a slope of -0.948 and an intercept of -0.209, provides us with estimated values of $E[X_k]$ based on a non-linear regression model.
+
+The formula for the expectation : $\(log(E[X_k]) \approx -log(k)\)$, so $E[X_k] \approx 1/k$
+
+
+## C
+
+In this code, a function called find_cycles is created to identify all the cycles present in a given permutation. The algorithm is the following:
+
+The algorithm finds cycles in a given permutation.
+It keeps track of visited elements.
+It initializes an empty list to store cycles.
+For each unvisited element, it starts a new cycle.
+It assigns the next index based on the permutation.
+While the cycle is not completed:
+
+It appends the next index to the cycle.
+Marks the next element as visited.
+Updates the next index.
+When a cycle is completed, it appends it to the list.
+The algorithm repeats for all elements in the permutation.
+The result is a list of cycles found.
+
+Additionally, another function called check_same_cycle is implemented, which checks whether the numbers 1 and 2 are in the same cycle. It iterates through each cycle in the list of cycles obtained from the find_cycles function and returns a boolean value (TRUE or FALSE) indicating whether they are in the same cycle or not.
+
+To estimate the probability, denoted as $\hat{p}$, of 1 and 2 being in the same cycle, the check_same_cycle function is executed for a large number of simulations (10,000 in this case). The estimate is obtained by summing up the results of these simulations (number of times 1 and 2 are in the same cycle) and dividing it by the total number of simulations. To calculate the standard deviation of the sample mean, the built-in function sd is utilized divided by the square root of n. This function calculates the standard deviation of a given set of probabilities.
+
+
+```{r}
+
+set.seed(4444)
+
+find_cycles <- function(perm) {
+  n <- length(perm)  # Keeps track of visited elements
+  visited <- rep(FALSE, n)
+  cycles <- list()  # Empty list that will store cycles
+    
+  for (i in 1:n) {
+    if (!visited[i]) {  # Checks if element i has been visited
+      cycle <- c(i)  # Initiates a new cycle list in index i
+      next_idx <- perm[i]  # Assigns next index as the element in perm at index i
+      
+      while (next_idx != i) {  # If cycle is not completed 
+        cycle <- c(cycle, next_idx)  # Appends next index to the cycle list
+        visited[next_idx] <- TRUE  # next element as visited
+        next_idx <- perm[next_idx]  # Updates next_indx
+      }
+      
+      cycles <- c(cycles, list(cycle))  # appends cycle to cicles list
+    }
+  }
+  
+  return(cycles)  # All cycles in the permutation perm
+}
+
+
+check_same_cycle <- function(cycles, elem1, elem2) {
+  for (cycle in cycles) {
+    if (elem1 %in% cycle && elem2 %in% cycle) {  # If 1 and 2 are in the same cycle
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+ind <- rep(NA,n)
+
+for (i in 1:n) {
+  emp_3 <- sample(vect)
+  ind[i] <- check_same_cycle((find_cycles(emp_3)),1,2)
+}
+
+sum(ind)/n  # Probability of 1 and 2 be in the same cycle
+sd(ind)/sqrt(n)  # Standard deviation of the probability above (of the sample mean)
+
+```
+
+The estimated probability is given by 0.5035 while the estimated standard deviation in given by 0.005. This suggests that, based on the simulated permutations, there is a likelihood of around 50.35% that the numbers 1 and 2 will appear in the same cycle - Higher than what I expected. A lower standard deviation suggests that the calculated probabilities are tightly clustered around the mean, while a higher standard deviation indicates more variability. In this case, the estimated standard deviation is approximately 0.05, indicating a low level of variability in the probabilities obtained from the simulations.
+
+
+## Q2. Analysis and Visualization of the COVID-19 Data
+
+![](https://cdn.who.int/media/images/default-source/mca/mca-covid-19/coronavirus-2.tmb-1920v.jpg?sfvrsn=4dba955c_12)
+
+
+
+In this question we compare and visualize the trends in terms of numbers of COVID-19 `cases` and `deaths` for different world countries during the pandemic. 
+
+
+
+a. Read the COVID-19 dataset file `WHO-COVID-19-global-data.csv` from the [World's Health Organization](https://covid19.who.int/?gclid=Cj0KCQjwudb3BRC9ARIsAEa-vUuF5yzpzQUOyxXJvgsXDE6koerrpqO7go0BPBTylJbYh_fPSaYaMWUaAhNlEALw_wcB) webpage into an $R$ data-frame.
+
+See the link `Data` and then `Data Download` that transfers you to the page with the data and explanations on the data [here](https://covid19.who.int/data). <br>
+
+The data represents the daily number of cases and deaths from COVID19 in different world countries, from the start of the pandemic at $2020$ until the current date <br>
+
+Change the name of the column representing the date to `Date`. Make sure that this column represents only the date and set it to 'date' type. For example, the first element in the 'Date' column should be "2020-01-03". <br>
+
+Show the head and tail of the resulting data-frame. 
+
+
+
+
+
+b. In this sub-question and the next one, we're interested in plotting the COVID-19 trends in `Israel` and its neighbors. 
+
+Extract as candidate neighbors all countries with `WHO_region = EMRO`. Add `Israel` and other neighbor countries that you notice are missing, and remove far away countries (e.g. `Afghanistan`, `Djibouti`). Use your best judgment in selecting which additional countries to remove, and keep the total number of neighbor countries at below $15$. <br>
+
+Replace long country names with meaningful short names for better readability and graph appearance. 
+
+For example, if `Venezuela (Bolivarian Republic of)` was one of our neighbors, we would have replaced it by `Venezuela`. <br>
+
+Next, plot the `cumulative` number of `cases` as a function of the `Date` for these countries (one plot, a different curve per each country). 
+
+Repeat and show in a different plot the `cumulative` number of `deaths` for each of these countries. 
+
+
+
+
+
+
+
+c. Load the economic dataset available in moodle in the file `economic_data.csv` with demographic and economic information on world countries. 
+
+Merge the two data-frames such that the new data-frame will keep the information in the COVID-19 data-frame, yet will also contain for each row the total population of each country in $2018$. 
+
+Manually rename country names that do not match between the two datasets - you don't have to change all names, but focus on including countries that come up in the analysis of 
+
+(b.) and of the next sub-questions. <br>
+
+Create four new columns, respectively representing the number of *cumulative* `cases` and `deaths` per one million people, and the number of *new* daily `cases` and `deaths` per one million people, for each country and date. <br>
+
+For the same countries used in (b.), plot in two separate figures
+
+the *log-scaled* `cumulative` number of `cases` and `deaths` per million, as a function of the Date. <br>
+
+Which countries suffered the most from the pandemic based on these plots? how did Israel do compared to its neighbors?
+
+
+
+d. One measure of the healthcare system strength in a country is the ratio between the number of deaths and the number of cases (with the caveats that this number is affected by other things like
+
+the population age-structure, the fact that testing and diagnosing cases are different between countries etc.). <br> 
+
+Extract for *all* countries the latest reported cumulative number of `cases per million` and `deaths per million` per country (it is recommended to create a new data-frame with one row per country), and make a scatter-plot comparing the two shown on a `log-scale`.  
+
+Fit a linear regression line to the log-scaled data. <br>
+
+Define the `fatality rate` as the ratio between the latest reported cumulative numbers of `deaths` and `cases`, i.e. an estimate of the probability that an infected individual died form the disease. Display the distribution of `fatality rate` across countries using a plotting method of your choice. Describe the distribution: what is the mean/median? is it symmetric? skewed? are there outlier countries? which ones?
+
+
+
+
+
+e. Find the countries suffering the highest number of deaths by COVID-19, i.e. those with $>200,000$ cumulative number of `deaths`.
+
+For these countries, plot the `smoothed` number of `new` daily cases. 
+
+You can use the `geom_smooth` function. <br>
+
+Describe the different qualitative behaviors of the curves of the different countries. 
+
+Which countries were hit earliest/latest by the pandemic? 
+
+Is there a different in the number of waves suffered by each country? 
+
+
+
+
+
+
+
+f. Plot the new  number of `cases` and `death` as a function of the date in each of the six `WHO_regions`: `EMRO`,  `EURO`,  `AFRO`,  `WPRO`,  `AMRO`,  `SEARO` (filter `Others`), in two separate plots (each region in a different color). Describe the results. <br>
+
+Create a new column representing `GDP per capita` for each country. Then, plot the empirical CDF of the `GDP per capita` and the 
+
+percent of population above $65$ (`pop65`) in each of the six `WHO_regions`, in two separate plots (each region in a different color). Describe the results.
+
+
+
+
+
+
+
+
+
+**Solutions: QU. 2**
+
+## A
+
+In this exercise, I downloaded the CSV file from the webpage and stored it as a data frame called "df". Then, I changed the name of the column that represents the date to "Date". I formatted the column to a Year-Month-Day date format and displayed the first 6 and last 6 rows of the data frame.
+
+```{r}
+
+file_path <- "/Users/gabrielahadid/Desktop/Universidade/Semestre 4/Data Analysis with R/Prova/Exam R/WHO-COVID-19-global-data.csv"
+df <- read.csv(file_path)
+
+names(df)[1] <- "Date"
+df$Date<- as.Date(df$Date, format = "%Y-%m-%d")
+
+head(df)
+tail(df)
+
+
+```
+
+
+The output shows the first 6 and last 6 rows in the data frame of the COVID-19 cases and deaths for different world countries during the pandemic.
+
+## B 
+
+In this question, I aimed to include the following neighbors of Israel: Egypt, Iran, Iraq,Jordan, Lebanon, Libya, Saudi Arabia, Syria, and Turkey (a total of 9 countries + Israel). To accomplish this, I added Turkey to the Europe region and excluded certain countries in the Middle East that were not neighbors of Israel. Additionally, I replaced the long names of countries with simpler ones.
+
+Finally, I plotted separate graphs for cumulative case numbers and deaths, where each color on the graph represents a different country.
+
+```{r}
+
+neighbor <- subset(df, Country == "Israel" | WHO_region == "EMRO" | Country == "Türkiye")  # df of Israel ,Middle eastern and Turkey
+
+exclude_countries <- c("Afghanistan", "Djibouti", "Oman", "Morocco", "Pakistan", "Somalia", "Tunisia", "Yemen", "United Arab Emirates", "Sudan", "Bahrain","Kuwait","occupied Palestinian territory, including east Jerusalem","Qatar")  # Not neighbors of Israel
+
+neighbor <- filter(neighbor, !(Country %in% exclude_countries))  # Excluding not neighbors
+
+
+replacements <- c("Iran (Islamic Republic of)" = "Iran",
+                  "Syrian Arab Republic" = "Syria",
+                  "Türkiye" = "Turkey")  # Replacing names
+
+neighbor$Country <- ifelse(neighbor$Country %in% names(replacements),
+                           replacements[neighbor$Country],
+                           neighbor$Country)  # Replacing if appears in replacements
+
+df$Country <- ifelse(df$Country %in% names(replacements),
+                           replacements[df$Country],
+                           df$Country)  # Replacing if appears in replacements in main df
+
+ggplot(neighbor, aes(x = Date, y = Cumulative_cases, color = Country)) +
+  geom_line() +
+  labs(x = "Date", y = "Cumulative Number of Cases") +
+  scale_color_discrete(name = "Country")+
+  scale_y_continuous(breaks = seq(min(neighbor$Cumulative_cases),max(neighbor$Cumulative_cases),1000000))+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") + 
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+ggplot(neighbor, aes(x = Date, y = Cumulative_deaths, color = Country)) +
+  geom_line() +
+  labs(x = "Date", y = "Cumulative Number of Deaths") +
+  scale_color_discrete(name = "Country")+
+  scale_y_continuous(breaks = seq(min(neighbor$Cumulative_deaths),max(neighbor$Cumulative_deaths),10000))+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") + 
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+
+```
+
+From the graph of Cumulative cases, we can observe that the overall number of cases started to increase approximately in October of 2020, with a steep slope indicating a rapid growth in the number of cases. However, after the first quarter of 2022, there was a decline in the rate of cumulative cases, indicating a decrease in the number of new cases. Most countries, except for Turkey, Iran, Israel, and Iraq, exhibited a relatively stable increase in the cumulative number of cases over the years.
+
+Regarding the Cumulative number of deaths graph, the timing of the increase in the number of cases varied among countries, but in all of them, the slope steepened, indicating a rapid increase in the number of deaths. However, in general, we can observe that the decline in the rate of cumulative deaths (i.e., a decrease in new deaths) occurred after the first quarter of 2022, coinciding with the decrease in new cases. Most countries, except for Turkey, Egypt, Iran and Iraq, exhibited a relatively stable increase in the cumulative number of deaths over the years. 
+
+In other words, countries with a greater increase in the number of new cases also experienced a greater increase in the number of deaths. However, it is worth noting that Israel had a rapid increase in the number of new cases throughout the years but had a relatively low number of new deaths. On the other hand, Egypt did not have a significant increase in the number of new cases over the years but had a relatively high increase in the number of new deaths.
+
+## C
+
+To complete this exercise, I loaded the economic dataset and replaced the names of certain countries to ensure better alignment with our previous data frame. Next, I created a new column to represent the population of each country and merged the two data frames based on the country's name. Then, I added additional columns to calculate the cumulative cases and deaths per one million people, as well as the number of new daily cases and deaths per one million people.
+
+Finally, focusing on Israel and its neighboring countries, I plotted the log-scaled cumulative number of cases and deaths per million people as a function of the date. This allowed for a better understanding of the relative impact of the pandemic in these countries over time.
+
+```{r}
+
+econ <- read.csv("economic_data.csv")
+
+name_replacements <- c("Egypt, Arab Rep." = "Egypt",
+                  "Iran, Islamic Rep." = "Iran",
+                  "Syrian Arab Republic" = "Syria",
+                  "United States" = "United States of America",
+                  "United Kingdom"="The United Kingdom",
+                  "Bolivia" = "Bolivia (Plurinational State of)",
+                  "Yemen, Rep." = "Yemen",
+                  "Bahamas, The" = "Bahamas",
+                  "Czech Republic"= "Czechia",
+                  "Venezuela, RB"="Venezuela (Bolivarian Republic of)",
+                  "Tanzania"= "United Republic of Tanzania"
+                  )  # Name replacements
+
+names(econ)[c(1,5)] <- c("Country","Data2018")
+
+econ$Country <- ifelse(econ$Country %in% names(name_replacements),
+                           name_replacements[econ$Country],
+                           econ$Country)  # Replacing if appears in replacements
+
+econ <- econ %>%
+  group_by(Country) %>%
+  mutate(Pop2018 = ifelse(Series.Name == "Population, total",Data2018,NA))  # Creates column of population of each country based on Series.Name and the data for 2018 columns 
+
+econ_temp <- econ[complete.cases(econ$Pop2018),]  # New data frame that matches the population to the country filling the NAs values
+
+merged_df <- merge(df,econ_temp[,c("Country","Pop2018")],by = "Country",all.x = TRUE)  # Merge dfs according to first one
+
+merged_df$Pop2018 <- as.integer(merged_df$Pop2018)  # Converts population column to integer
+
+merged_df <- merged_df %>%
+  mutate(Cumulative_cases_per_million = (Cumulative_cases/Pop2018)*1000000,
+         Cumulative_deaths_per_million = (Cumulative_deaths/Pop2018)*1000000,
+         New_cases_per_million = (New_cases/Pop2018)*1000000,
+         New_deaths_per_million = (New_deaths/Pop2018)*1000000)  # Adding 4 new columns according to the formula (x*Population in 2018)/million
+
+neigh_in_merged_df <- merged_df %>% filter(Country %in% neighbor$Country) # Filter neighbor countries
+
+
+ggplot(neigh_in_merged_df, aes(x = Date, y = Cumulative_cases_per_million, color = Country))+
+  scale_y_log10() +
+  geom_line() +
+  labs(x = "Date", y = "Log-scale Cumulative Cases Per Million") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") + 
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+ggplot(neigh_in_merged_df, aes(x = Date, y = Cumulative_deaths_per_million, color = Country)) +
+  geom_line() +
+  scale_y_log10() +
+  labs(x = "Date", y = "Log-scale Cumulative Deaths Per Million") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") + 
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+
+```
+
+From the Log-scale Cumulative cases per million, we can see among all countries a significant and rapid increase in the number of cases per million population between the end of the first quarter of 2020 and the beginning of 2021. We can observe that most countries, with the exception of Egypt, Saudi Arabia, and Syria, experienced a high value on the y-axis throught the years. This indicates a higher impact or severity of the pandemic in terms of the increase in the number of cases per million population.
+
+In terms of the Log-scale Cumulative deaths per million, we can see a significant and rapid increase in the number of deaths between the end of the first quarter of 2020 and the beginning of 2021 which corresponded to the increased number of cases. However, countries such as Syria, Egypt, and Saudi Arabia managed to maintain relatively lower numbers of deaths per million population throughout the years - Same countries that had low values in previous graph.
+
+Israel exhibited a notably high and rapid increase in the cumulative number of cases between April 2020 and April 2021, remaining higher compared to its neighboring countries. This suggests that Israel had a greater impact in terms of the number of new cases per million compared to its neighbors. Conversely, when considering the log-scale cumulative deaths per million population, the number of cumulative deaths per million in Israel was not as high compared to other countries. Countries like Lebanon and Iran had a more severe situation in terms of deaths per million compared to Israel.
+
+It's worth noticing that by plotting the cumulative cases per million population, we normalize the data and account for the population size of each country. This allows for a fairer comparison of the impact of the pandemic across different countries, as it takes into consideration the population differences. Additionally, when we use a logarithmic scale, it compresses the range of values and allows for better visualization of the relative changes in the data. Therefore, these graphs represent a different meaning and provide a clearer perspective on the rate of increase or decrease in cases relative to the population size.
+
+
+## D
+
+For this question, I grouped the data frame by country and arranged it in descending order of date to extract the last row for each group, which contains the latest reported cumulative number of cases per million and deaths per million for each country. Then, I created a new data frame with the relevant columns for the exercise.
+
+Next, I created a scatter plot comparing the number of cases and deaths per million on a log scale. I added a regression line to visualize any potential relationship between the variables.
+
+To calculate the fatality rate, I divided the cumulative number of deaths by the cumulative number of cases. This allowed me to display the distribution of fatality rates across countries using the geom_density function to a better visualization of the trends. The limit of the x-axis was manually changed as Yemen was a big outlier and including it made some vizualization problems to the graph. Its fatality rate and name are shown in a kable table below.NAs element in the fatality rate were excluded to display graphs and analysis.
+
+From the density plot, I extracted information such as the skewness, mean, median, and identified outlier countries.
+
+```{r}
+
+# Group the data frame by country and arrange it in descending order of date
+
+grouped_df <- merged_df %>% 
+  group_by(Country) %>% 
+  arrange(desc(Date))
+
+latest_data <- grouped_df %>% 
+  slice(1) # Select the last row for each group (country)
+
+# Select only the necessary columns
+
+latest_data <- latest_data %>% 
+  select(Country, Cumulative_cases_per_million, Cumulative_deaths_per_million)
+
+
+plot_d <- ggplot(latest_data, aes(x = Cumulative_cases_per_million, y =   Cumulative_deaths_per_million)) +
+  geom_point() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Log-Scaled Cumulative Cases per Million", y = "Log-Scaled Cumulative Deaths per Million",
+       title = "Comparison of Cumulative Cases and Cumulative Deaths per Million",
+       subtitle = "In a Log-scale")
+
+plot_d + geom_smooth(method = "lm",se = FALSE)
+
+latest_data$fatality_rate <- (latest_data$Cumulative_deaths_per_million / latest_data$Cumulative_cases_per_million)
+
+latest_data <- latest_data[complete.cases(latest_data$fatality_rate), ]  # Removed NAs if fatality rate column is equal to NA
+
+
+ggplot(data = latest_data, aes(x = fatality_rate)) +
+  geom_density(color = "black", fill = "lightblue") +
+  labs(x = "Fatality Rate", y = "Density") +
+  ggtitle("Distribution of Fatality Rate") + 
+  scale_x_continuous(breaks = seq(0,0.08,0.005)) +
+  xlim(0,0.08)
+
+subset_data <- latest_data[latest_data$fatality_rate > 0.08, ]
+knitr::kable(subset_data[1,c(1,4)])  # Excluded from the graph
+
+
+summary(latest_data$fatality_rate,na.rm = TRUE)
+mean_value <- mean(latest_data$fatality_rate,na.rm = TRUE)
+meadian_value <- median(latest_data$fatality_rate,na.rm = TRUE)
+skewness(latest_data$fatality_rate,na.rm = TRUE)
+
+# Identify outlier countries
+outliers <- boxplot(latest_data$fatality_rate, plot = FALSE)$out
+outlier_countries <- latest_data$Country[latest_data$fatality_rate %in% outliers]
+
+# Display fatality rate for each outlier country
+fatality_rates <- latest_data$fatality_rate[latest_data$Country %in% outlier_countries]
+
+outlier_countries
+fatality_rates  
+
+
+```
+
+The distribution of fatality rates is not symmetric and is characterized by a long right tail and a high peak at approximately 0.006. The mean fatality rate is 0.013, while the median is 0.009, indicating that the distribution is positively skewed. This suggests that there is a longer tail on the right side, and the majority of values are concentrated on the left side, as observed in the graph.
+
+The skewness value of 5.81 indicates a significant positive skew, signifying a substantial departure from symmetry. This confirms that the distribution is right-skewed, with more extreme values or outliers on the right side, pulling the mean towards higher values.
+
+The outlier countries in terms of fatality rate include Bosnia and Herzegovina, Egypt, Mexico, Peru, Somalia, Sudan,Syria and Yemen, totaling 8 countries. Their respective fatality rate values are 0.0406, 0.0481, 0.0438, 0.0490, 0.0498, 0.0789,0.0551 and 0.1807. Notably, all these values are above the mean,specially Yemen, indicating that they are positive outliers. Positive outliers suggest that these countries have fatality rates higher than the majority of the other countries.
+
+From the graph comparing cumulative cases and cumulative deaths, we can observe a positive correlation, indicating that as the number of cumulative cases increases, so does the number of cumulative deaths.
+
+
+## E
+
+For this exercise I first filtered the data according to countries that had cumulative deaths higher than 200,000 and then displayed their names. After that, I created a new data frame with only those countries and ploted the smoothed number of new daily cases with geom_smooth.
+
+
+```{r}
+
+high_covid <- merged_df %>%
+  filter(Cumulative_deaths > 200000)
+
+countries_high_covid <- unique(high_covid$Country)
+countries_high_covid
+
+countries_covid <- merged_df %>%
+  filter(Country %in% countries_high_covid)
+  
+ggplot(countries_covid, aes(x = Date, y = New_cases,color = Country)) +
+  geom_smooth(se = FALSE) +
+  labs(x = "Date", y = "Number of New Daily Cases") +
+  ggtitle("Smoothed Number of New Daily Cases for High Death Countries") +
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m") +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+
+
+  
+```
+
+- The countries identified with cumulative numbers of deaths higher than 200,000 were Brazil, India, Mexico, Peru, Russia, the United Kingdom, and the USA.
+
+- From the graph, we can observe distinct qualitative behaviors of the curves. Mexico and Peru are characterized by low volatility, indicating stability. On the other hand, the United States, Russia, the United Kingdom, and Brazil exhibit higher variability.
+
+Among the countries with high variability, excluding India, they all show more than one peak, indicating multiple waves of Covid-19 in each region. Notably, the United States stands out with sharp slopes and high values, representing a rapid increase in the number of new cases.
+
+The curves of Brazil and India have lower slopes, indicating a more gradual increase in the number of new daily cases.
+
+Russia and the UK exhibit similar curves at times, including similar slopes and shapes, suggesting similar patterns in the variations of new daily cases.
+
+-We see, according to the increasing curves that the earliest countries hit by the pandemic were India, United States and Brazil.
+
+
+## F
+
+For this exercise, I first selected the desired regions from the dataset. Then, I calculated the new cases and new deaths for each region, grouped by date. These calculations were performed to track the daily changes in cases and deaths in each region. Next, I plotted the number of new cases and new deaths separately as a function of the date. In these plots, each region was represented by a different color and to enhance the visualization and account for the high variation in the data, I added the geom_smooth function on another 2 graphs. This function fits a smoother curve to the data points, allowing for a clearer representation of the overall trend. It's worth noticing that I settled the y axis to start at a minimum of 0 as a new cases/deaths negative number is not possible and probably an error in the data.
+
+In the second part of the exercise, I extracted additional data, namely the GDP (in dollars, in 2018) and the percentage of the population above 65 years old (in percents) for each country. To calculate GDP per capita, I divided the GDP by the corresponding population in 2018. 
+
+To visualize the cumulative distribution functions (CDF) of these variables, I used the ggplot package. Specifically, I employed the stat_ecdf function with the geom = "step" parameter. Each region was assigned a different color in the plots, providing a visual comparison of the CDFs across the selected WHO regions.
+
+NA values were automatically removed from the plots, but not from the data frames.
+
+```{r}
+
+filtered_data <- subset(merged_df, WHO_region %in% c("EMRO", "EURO", "AFRO", "WPRO", "AMRO", "SEARO") )
+
+# Calculate new cases and deaths for each WHO region
+region_cases <- aggregate(New_cases ~ Date + WHO_region, filtered_data, sum)
+region_deaths <- aggregate(New_deaths ~ Date + WHO_region, filtered_data, sum)
+
+plot_regioncases <-ggplot(region_cases, aes(x = Date, y = New_cases,color = WHO_region)) +
+  geom_line() +
+  labs(x = "Date", y = "New Cases") +
+  ggtitle("New Number of Cases by Region")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m")+
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+plot_region_deaths <- ggplot(region_deaths, aes(x = Date, y = New_deaths,color = WHO_region)) +
+  geom_line() +
+  labs(x = "Date", y = "New Deaths") +
+  ggtitle("New Number of Deaths by Region")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m")+
+  theme(legend.position = "none")+
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
+
+plot_regioncases2 <-ggplot(region_cases, aes(x = Date, y = New_cases,color = WHO_region)) +
+  geom_smooth(se = FALSE) +
+  labs(x = "Date", y = "New Cases",subtitle = "Smoothed") +
+  ggtitle("New Number of Cases by Region")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m")+
+  ylim(0, NA) +
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5),legend.position = "top",   # Change legend position to the top of the graph
+    legend.key.size = unit(0.5, "cm"))  # Decrease the size of the legend keys
+
+plot_region_deaths2 <- ggplot(region_deaths, aes(x = Date, y = New_deaths,color = WHO_region)) +
+  geom_smooth(se = FALSE) +
+  labs(x = "Date", y = "New Deaths",subtitle = "Smoothed") +
+  ggtitle("New Number of Deaths by Region")+
+  scale_x_date(date_breaks = "3 months", date_labels = "%Y-%m")+
+  ylim(0, NA)+
+  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5),legend.position = "top",   # Change legend position to the top of the graph
+    legend.key.size = unit(0.5, "cm"))
+
+grid.arrange(plot_regioncases,plot_regioncases2,ncol = 2)
+grid.arrange(plot_region_deaths,plot_region_deaths2,ncol = 2)
+
+
+econ <- econ %>%
+  group_by(Country) %>%
+  mutate(GDP = ifelse(Series.Name == "GDP (current US$)",Data2018,NA),
+         pop65 = ifelse(Series.Name == "Population ages 65 and above (% of total population)",Data2018,NA))  # Creates column of GDP of each country based on Series.Name and the data for 2018 columns 
+
+econ_temp2 <- econ[complete.cases(econ$GDP),]  # New data frame that matches the GDP to the country filling the NAs values
+econ_temp3 <- econ[complete.cases(econ$pop65),]  # New data frame that matches the pop65 to the country filling the NAs values
+
+merged_df <- merge(merged_df,econ_temp2[,c("Country","GDP")],by = "Country",all.x = TRUE)  # Merge dfs
+
+merged_df <- merge(merged_df,econ_temp3[,c("Country","pop65")],by = "Country",all.x = TRUE)  # Merge dfs
+
+merged_df$GDP <- as.numeric(merged_df$GDP)  # Converts gdp to numeric
+merged_df$pop65 <- as.numeric(merged_df$pop65)  # Converts pop65 to numeric
+
+merged_df <- merged_df %>%
+  mutate(GDP_per_capita = GDP/Pop2018)
+
+filtered_data <- subset(merged_df, WHO_region %in% c("EMRO", "EURO", "AFRO", "WPRO", "AMRO", "SEARO"))
+
+# Plotting empirical CDF of GDP per capita
+ggplot(filtered_data, aes(x = GDP_per_capita, color = WHO_region)) +
+  stat_ecdf(geom = "step") +
+  labs(x = "GDP per capita", y = "Empirical CDF") +
+  ggtitle("Empirical CDF of GDP per capita by WHO Region")+
+  scale_x_continuous(breaks = seq(0,250000,25000))
+
+ggplot(filtered_data, aes(x = pop65, color = WHO_region)) +
+  stat_ecdf(geom = "step") +
+  labs(x = "Percent of Population Above 65", y = "Empirical CDF") +
+  ggtitle("Empirical CDF of Population Above 65 by WHO Region")+ 
+  scale_x_continuous(breaks = seq(0,30,5))
+
+
+```
+
+(We can see that the original graphs present high volatility, meaning that for each region the number of new deaths or new cases varies drastically, so the analysis was performed in the smoothed graph, showing trends in each region for a better visualization)
+
+- Plot of the new number of cases as a function of the date in each of the six WHO_regions:
+
+
+Firstly, it is observed that the Americas (AMRO) and Europe (EURO) exhibit two sharp peaks which converges in the same shape for the two regions, indicating a rapid increase in the number of new cases and a similar period of waves between those 2 regions. The first peak occurred in early 2021, followed by another peak in early 2022. Upon comparing these two regions, Europe displayed a greater increase and steeper slope in new cases during both waves.
+
+For Africa (AFRO), the Middle East (EMRO), and East Asia (SEARO), a relatively stable increase in the number of new cases is apparent. East Asia, in particular, experienced the most significant increase compared to the other two regions, with its peak occurring in mid-2021.
+
+The Western Pacific region (WPRO) displayed a peak in early 2023 (relatively late compared to the other regions) where the start of the increase converges with the second wave of SEARO and AMRO. This suggests a significant surge in the number of new cases during that period, indicating a notable increase in the transmission of the virus within the Western Pacific region.
+
+Notably, certain segments of the graph depict negative values for new cases, suggesting potential data entry errors or data corrections.
+
+
+- Plotting the new number of deaths over time for each of the six WHO regions:
+
+The regions with the most noticeable increase in the number of deaths are East Asia (SEARO), Europe (EURO), and the Americas (AMRO). Although East Asia exhibited a smaller peak and lower overall number of new deaths compared to the other two regions, a significant peak is observed in the middle of 2021, along with two additional minor peaks in October 2020 and June 2022.
+
+In contrast, the regions of Africa (AFRO), the Middle East (EMRO), and the Western Pacific (WPRO) exhibited relatively stable trends in the number of new deaths. This suggests that COVID-19 had a comparatively lesser impact on fatalities in these regions, indicating a lower number of deaths compared to the other regions. Notably, in the Western Pacific region, there was a delayed peak observed in early 2023, indicating a significant rise in the number of new deaths during that period.
+
+
+- CDF of the GDP:
+We can observe that the SEARO and AFRO regions exhibit taller steps in the graph, which terminate before the $12,500 mark. Taller steps indicate a significant increase in cumulative probability, suggesting a larger proportion of individuals with lower GDP per capita values. These findings suggest that these regions are characterized by a higher prevalence of economic challenges and a larger proportion of individuals with lower income levels.
+
+If we draw imaginary horizontal lines, it becomes evident that AMRO, EMRO, and WPRO lie between the lowest and highest GDP per capita values for the same CDF percentiles. This observation suggests that these regions are characterized by medium to high levels of GDP per capita.
+
+In contrast, the EURO region shows gradual and small steps that are elongated in the graph. This suggests that the EURO region has a higher and wider range of GDP per capita values compared to other regions. The elongation of the steps indicates that the EURO region encompasses a greater diversity of GDP per capita levels characterized by a larger proportion of individuals with higher income levels.
+
+In summary, the CDF of the GDP reveals distinct patterns among different regions. SEARO and AFRO regions exhibit taller steps, indicating lower GDP per capita values. AMRO, EMRO, and WPRO regions demonstrate medium to high GDP per capita values. The EURO region displays a wider range of GDP per capita values, as evidenced by its elongated steps, demonstrating high GDP per capita values.
+
+- CDF of percent of population above 65
+
+In the CDF graph, AFRO, EMRO, and SEARO regions exhibit tall steps, indicating a significant increase in cumulative probability. This suggests a larger proportion of individuals with a lower percentage of the population above 65 in these regions. These findings imply that these regions are characterized by a higher prevalence of young people and a lower proportion of elderly individuals.
+
+On the other hand, AMRO, WPRO, and EURO display relatively gradual and smaller steps in the graph. These gradual steps indicate a more balanced distribution of the percentage of the population above 65 across the regions. It implies that these regions have a wider range of values and a more diverse age distribution. However, among these regions,EURO has a CDF shifted more towards the left compared to the other two regions. This suggests that EURO has a higher proportion of people above 65 years old compared to AFRO and SEARO.
+
+Overall, the CDF analysis suggests that AFRO, EMRO, and SEARO have a larger proportion of young individuals, while EURO has a higher proportion of people above 65. The gradual steps in AMRO and WPRO indicate a more balanced distribution of age groups in these regions.
+
+
+- Overall Analysis:
+
+The analysis of the COVID-19 data and the CDF graphs reveals that regions with lower GDP per capita and/or a higher proportion of elderly individuals tend to have higher numbers of new deaths compared to the new cases. The SEARO and AFRO regions exhibit taller steps in the CDF graph, indicating economic challenges and a larger proportion of individuals with lower income levels, while they didn't had much new daily cases increase, the new number of deaths were relatively high. In contrast, regions with higher GDP per capita, such as AMRO, EMRO, and WPRO, experience a lower number of new deaths despite potentially higher numbers of new cases. This suggests that economic resources and healthcare infrastructure play a crucial role in managing the impact of the virus. The findings emphasize the need to consider socioeconomic factors and healthcare capabilities when addressing the COVID-19 pandemic in different regions.
+
