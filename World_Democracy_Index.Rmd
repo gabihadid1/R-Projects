@@ -1,6 +1,6 @@
 ---
 title: "Assessment 1"
-author: "Gabriela Cohen Hadid 341348910"
+author: "Gabriela Cohen Hadid"
 output: html_document
 ---
 # *Lab 1: Basic Data Wrangling and Plotting, Distributions*  
@@ -177,7 +177,7 @@ First, I loaded the data into R and extracted the relevant tables. Second, I dis
 
 # Loading the data
 
-democracy <- read_html("https://en.wikipedia.org/wiki/Democracy_Index")
+democracy <- read_html("https://en.wikipedia.org/w/index.php?title=The_Economist_Democracy_Index&oldid=1157018749")
 all.tables <- html_nodes(democracy,"table")
 
 # Saving each desired table as a separate data set
@@ -341,7 +341,7 @@ skew_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = skewness)
 
 # Kurtosis of each region
 
-kurto_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = kurtosis)  
+kurto_dis <- tapply(list_by_country$X2022,list_by_country$Region,FUN = function(x) kurtosis(x) - 3)  
 
 # Creating a matrix of results above
 
@@ -379,7 +379,7 @@ A few points to be analysed from the density graph :
 * The density curves of the Middle East and North Africa and Sub-Saharan Africa regions are right-skewed (left-tailed), indicating that the mean is greater than the median. This suggests that the distribution is pulled towards higher values. In contrast, North America is the only region that appears to resemble a normal distribution with no skewness, indicating a symmetric distribution. The other regions are right-tailed, indicating that the mean is lower than the median.
 
 
-* All regions exhibit positive kurtosis, indicating heavier tails compared to the normal distribution. This suggests that the distributions have more extreme values or outliers compared to a normal distribution.
+* The kurtosis is also very high for Western Europe, indicative of long tails behavior compared to the Normal distribution.
 
 
 * The table shows that North America and Western Europe have relatively high means, indicating a higher average democracy index in these regions. Conversely, the Middle East and North Africa region has the lowest mean, indicating a lower average democracy index.
@@ -597,7 +597,7 @@ for (i in 1:4) {
   reg2006 <- regime_types[i]
   for (j in 1:4) {
     reg2022 <- regime_types[j]
-    prob <- sum(matrix_regimes$regime_types_2006 == reg2006 & matrix_regimes$regime_types_2022 == reg2022) / nrow(matrix_regimes)  
+    prob <- sum(matrix_regimes$regime_types_2006 == reg2006 & matrix_regimes$regime_types_2022 == reg2022) / sum(matrix_regimes$regime_types_2006 == reg2006)  
     prob_matrix[i, j] <- prob
   }
 }  
@@ -638,7 +638,7 @@ First, I loaded the data into R and extracted the relevant tables, removing any 
 # Scrape the tables from the web pages using the Wikipedia URLs
 
 
-population <- read_html("https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_population")
+population <- read_html("https://en.wikipedia.org/w/index.php?title=List_of_countries_and_dependencies_by_population&oldid=1158466182")
 htmlpopElement <- population %>% html_element("table.sortable")
 list_population <- html_table(htmlpopElement)
 
@@ -651,13 +651,13 @@ list_population$Country <- gsub("\u202f","",as.character(list_population$Country
 
 # Scrape the tables from the web pages using the Wikipedia URLs
 
-gdp <- read_html("https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)_per_capita")
-htmlgdpElement <- gdp %>% html_element("table.sortable")
-list_gdp <- html_table(htmlgdpElement)
+gdp <- read_html("https://en.wikipedia.org/w/index.php?title=List_of_countries_by_GDP_(PPP)_per_capita&oldid=1156826767")
+htmlgdpElement <- gdp %>% html_nodes(xpath ="/html/body/div[2]/div/div[3]/main/div[3]/div[3]/div[1]/table[1]")
+list_gdp <- html_table(htmlgdpElement,fill=TRUE)
 
 # Manual adjusts
 
-list_gdp <- list_gdp[-1,]
+list_gdp <- list_gdp[[1]][-1,]
 colnames(list_gdp)[c(1,3,4,5,6,7,8)]<- c("Country","IMF Estimate", "IMF Year","World Bank Estimate","World Bank Year", "CIA Estimate", "CIA Year")
 list_gdp$Country <- gsub("\\s*\\*","",as.character(list_gdp$Country))
 list_gdp$Country <- gsub("\\s*\\[n 1\\]","",as.character(list_gdp$Country))
@@ -666,10 +666,12 @@ list_gdp$Country <- gsub("\u202f","",as.character(list_gdp$Country))
 
 
 
-incar <- read_html("https://en.wikipedia.org/wiki/List_of_countries_by_incarceration_rate")
-htmlincarElement <- incar %>% html_element("table.sortable")
-list_incar <- html_table(htmlincarElement)
-list_incar <- list_incar[-1,]
+incar <- read_html("https://en.wikipedia.org/w/index.php?title=List_of_countries_by_incarceration_rate&oldid=1153706416")
+htmlincarElement <- incar %>% 
+  html_nodes(xpath = '/html/body/div[2]/div/div[3]/main/div[3]/div[3]/div[1]/table[2]')
+
+list_incar <- html_table(htmlincarElement,fill=TRUE)
+list_incar <- list_incar[[1]][-1,]
 colnames(list_incar)[c(1,2,4)] <- c("Country","Region Incar","Rate per 100,000")
 list_incar$Country <- gsub("\\s*\\*","",as.character(list_incar$Country))
 list_incar$Country <- gsub("\\s*\\[Note\\]","",as.character(list_incar$Country))
@@ -677,7 +679,7 @@ list_incar$Country <- gsub("\u202f","",as.character(list_incar$Country))
 
 
 
-area <- read_html("https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area")
+area <- read_html("https://en.wikipedia.org/w/index.php?title=List_of_countries_and_dependencies_by_area&oldid=1157625444")
 htmlareaElement <- area %>% html_element("table.sortable")
 list_area <- html_table(htmlareaElement)
 colnames(list_area)[c(1,2,7)] <- c("Rank Area","Country","Notes Area") 
@@ -750,15 +752,15 @@ Despite the uncertainty, the p-value of 1.7e-15 (very small) indicates that the 
 Analysis of the Incarceration Rate x Democracy Index at 2022 graph:
 
 
-Based on the regression analysis, it suggests a weak or no correlation between the democracy index of a country in 2022 and its incarceration rate per 100,000 people. The estimated slope coefficient of -0.7536 suggests that, on average, there is a slight decrease of 0.75 in the incarceration rate for every unit increase in the democracy index.
+Based on the regression analysis, it suggests a weak or no correlation between the democracy index of a country in 2022 and its incarceration rate per 100,000 people. The estimated slope coefficient of -1.227 suggests that, on average, there is a slight decrease of 1.227 in the incarceration rate for every unit increase in the democracy index.
 
 
-However, it's important to note that the high standard error of the slope coefficient (3.7828) indicates a considerable degree of uncertainty in predicting the exact relationship between the democracy index and incarceration rate. The wide spread of data points around the regression line reflects the variability in the relationship.
+However, it's important to note that the high standard error of the slope coefficient (3.844) indicates a considerable degree of uncertainty in predicting the exact relationship between the democracy index and incarceration rate. The wide spread of data points around the regression line reflects the variability in the relationship.
 
 
-The p-value of 0.842 suggests that we fail to reject the null hypothesis, indicating that there is insufficient evidence to support a significant correlation between the country's democracy index and the incarceration rate.
+The p-value of 0.75 suggests that we fail to reject the null hypothesis, indicating that there is insufficient evidence to support a significant correlation between the country's democracy index and the incarceration rate.
 
-Furthermore, the intercept of 158.2880 represents the predicted incarceration rate per 100,000 people in the absence of any democracy index.
+Furthermore, the intercept of 161.368 represents the predicted incarceration rate per 100,000 people in the absence of any democracy index.
 
 
 In summary, the analysis suggests a weak or non-existent correlation between the democracy index and incarceration rate. However, the high uncertainty and non-significant p-value emphasize the need for further investigation and consideration of other factors that may influence the incarceration rate.
@@ -801,56 +803,36 @@ quantiles_x <- quantile(sorted_gdp)  # Quantiles for X
 
 In this chunk, I first cleaned the data to later be able to work with it - operations like removing a character of the column and converting column to numeric were used.
 
-Then, I extracted the world population to calculate the probability of each country be selected to represent the GDP of the country based on the population of each country.
-
-With those probabilities, I arranged the CIA Estimate of each country and calculated the cumulative probabilities by taking the cumulative sum of the probabilities and dividing them by the sum of all probabilities. Then, I ploted the CDF where a person is selected uniformly at random from all world population.
+Then, I calculated the weighted empirical CDF weighting countries by their population.
 
 
 ```{r}
 # Manual Adjusts
 
+list_by_country$`CIA Estimate` <-as.numeric(list_by_country$`CIA Estimate`)
 list_by_country$Population <- gsub(",", "",list_by_country$Population)
 list_by_country$Population <- as.numeric(list_by_country$Population)
-
-# Extracts the World population
-
-all_pop <- subset(list_by_country,Country == "World")
-all_pop <- all_pop$Population
-
-# Calculating probability of each country be selected
-
-list_by_country <- list_by_country %>% 
-  mutate(prob_pop = Population/all_pop)
-
-# New data without the world row
+list_by_country$PopulationPercent <- as.numeric(gsub("%", "", list_by_country$`Percentage Population`))
 
 list_by_country2 <- list_by_country %>% 
   filter(Country != "World")
+list_by_country2 <- drop_na(list_by_country2,c(`CIA Estimate`,PopulationPercent))
 
-# Choosing desired columns - gdp and probabilities
+weights_pop <- list_by_country2 %>%
+  filter(Country != "World") %>%
+  filter(!is.na(PopulationPercent) & !is.na(`CIA Estimate`)) %>%
+  dplyr::select(PopulationPercent)
 
-list_by_country2 <- list_by_country2 %>%
-  select(`CIA Estimate`,prob_pop) 
 
-# Drops NAs
+pop <- ewcdf(list_by_country2 %>%
+               filter(!is.na(PopulationPercent) & !is.na(`CIA Estimate`)) %>%
+               dplyr::select(`CIA Estimate`) %>%
+               unlist(), 
+             weights = weights_pop$PopulationPercent)
 
-list_by_country2 <- drop_na(list_by_country2,c(`CIA Estimate`,"prob_pop"))
 
-# Calculating the cumulative probabilities
-
-list_by_country2 <- list_by_country2 %>% arrange(`CIA Estimate`)
-list_by_country2<- list_by_country2 %>% mutate(cumulative_prob = cumsum(prob_pop)/sum(prob_pop))
-
-# Ploting the CDF
-ggplot(list_by_country2, aes(x = `CIA Estimate`)) +
-  stat_ecdf(aes(y = cumulative_prob)) +
-  labs(title = "Empirical CDF of GDP per capita", x = "GDP per Capita", y = "Probability", subtitle = "Based on randomly selected individuals from all world population") +
-  scale_x_continuous(breaks = seq(min(list_by_country2$`CIA Estimate`), max(list_by_country2$`CIA Estimate`), 5000)) +
-  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
-
-# Calculating quantiles
-
-quantile_y <- quantile(list_by_country2$`CIA Estimate`, weights = list_by_country2$cumulative_prob)
+plot(pop, xlab="GDP (PPP)", ylab = "CDF Random Person", main="CDF of World Population GDP (PPP) Per Capita")
+quantiles_y <- quantile(pop, c(0, 0.25, 0.5, 0.75, 1))
 
 
 ```
@@ -860,11 +842,7 @@ quantile_y <- quantile(list_by_country2$`CIA Estimate`, weights = list_by_countr
 
 In this chunk, I first cleaned the data to later be able to work with it - operations like removing characters of the column and converting column to numeric were used.
 
-Then, I extracted the world area land in kmˆ2 to calculate the probability of each country be selected to represent the GDP of the country based on the area land of each country.
-
-With those probabilities, I arranged the CIA Estimate of each country and calculated the cumulative probabilities by taking the cumulative sum of the probabilities and dividing them by the sum of all probabilities.
-
-Finally, I built the CDF of the current GDP per capita of a randomly selected person in the world and ploted it, where the location of the person is selected uniformly for all land area in the world.
+Similarly, I calculated the weighted empirical CDF weighting countries by their land area
 
 
 ```{r}
@@ -877,35 +855,15 @@ list_by_country$land_area <- gsub(",","",list_by_country$land_area)
 list_by_country$land_area <- ifelse(list_by_country$land_area == "", NA, list_by_country$land_area)
 list_by_country$land_area <- as.numeric(list_by_country$land_area)
 
-# Extracting world land area
-all_land <- subset(list_by_country,Country == "World")
-all_land <- all_land$land_area
-
-# Adds probability of each country according to land area
-
-list_by_country <- list_by_country %>% 
-  mutate(prob_land = land_area/all_land)
-
-# New data set with columns of the probabilities and gdp
-
 list_by_country3 <- list_by_country %>% 
-  filter(Country != "World") %>%
-  mutate(prob_land = land_area/all_land) %>%
-  select(prob_land,`CIA Estimate`)
-list_by_country3 <- drop_na(list_by_country3,c(`CIA Estimate`,"prob_land"))
+  filter(Country != "World")
+list_by_country3 <- drop_na(list_by_country3,c(`CIA Estimate`,land_area))
 
-# Calculating the cumulative probabilities
-list_by_country3 <- list_by_country3 %>% arrange(`CIA Estimate`)
-list_by_country3<- list_by_country3 %>% mutate(cumulative_prob = cumsum(prob_land)/sum(prob_land))
+area_w <- ewcdf(list_by_country3 %>% filter(!is.na(land_area)&!is.na(`CIA Estimate`)) %>% select(`CIA Estimate`) %>% unlist(), 
+               weights = list_by_country3 %>% filter(!is.na(land_area)&!is.na(`CIA Estimate`)) %>% select(land_area) %>% unlist())
 
-ggplot(list_by_country3, aes(x = `CIA Estimate`)) +
-  stat_ecdf(aes(y = cumulative_prob)) +
-  labs(title = "Empirical CDF of GDP per capita", x = "GDP per Capita", y = "Probability", subtitle = "Based on randomly selected individuals from all land area") +
-  scale_x_continuous(breaks = seq(min(list_by_country3$`CIA Estimate`), max(list_by_country3$`CIA Estimate`), 5000)) +
-  theme(axis.text.x = element_text(size = 10, angle = 90, hjust = 1, vjust = 0.5))
-
-
-quantile_z <- quantile(list_by_country3$`CIA Estimate`, weights = list_by_country3$cumulative_prob)
+plot(area_w, xlab="GDP (PPP)", ylab = "CDF Random Person", main="CDF of World Population GDP (PPP) Per Capita")
+quantiles_z <- quantile(area_w, c(0, 0.25, 0.5, 0.75, 1))
 
 
 ```
@@ -914,8 +872,8 @@ quantile_z <- quantile(list_by_country3$`CIA Estimate`, weights = list_by_countr
 # Quantiles of X,Y and Z
 
 quantiles_x
-quantile_y
-quantile_z
+quantiles_y
+quantiles_z
 
 ```
 
@@ -924,20 +882,9 @@ In summary, the 3 variables are different : The differences in the distribution 
 Comparing the median percentiles of X,Y and Z
 
 The median value for Y is slightly lower than the median value for X, indicating a slightly lower GDP per capita when considering individuals selected uniformly at random from the world population compared to countries selected uniformly at random.
-The median value for Z is also slightly lower than the median value for X, indicating a slightly lower GDP per capita when considering individuals selected uniformly at random from all land areas on Earth. (Median of X $>$ Median of Y $>$ Median of Z)
+The median value for Z is higher than the median value for X, indicating a higher GDP per capita when considering individuals selected uniformly at random from all land areas on Earth. (Median of Y $>$ Median of X $>$ Median of Z)
 
-
-Comparing the 25%  percentiles of X,Y and Z
-
-In this case, the 25th percentile of X is 5,475, while the 25th percentiles of Y and Z are lower. Y has a 25th percentile of 5,350, and Z has a 25th percentile of 5,300. This indicates that a randomly selected person's GDP per capita (Y) or a person's GDP per capita based on the location within the land area (Z) tend to be lower than the GDP per capita of randomly selected countries (X). (25 percentile of X $>$ 25 percentile of Y $>$ 25 percentile of Z)
-
-Comparing the 75% percentiles of X,Y and Z
-
-From these results, we can conclude that X has a slightly lower 75th percentile compared to Y, but both X and Y have higher values compared to Z. This indicates that when randomly selecting countries (X) or individuals from the world population (Y), the GDP per capita tends to be higher compared to randomly selecting individuals based on their location within the land area (Z). (75 percentile of Y $>$ 75 percentile of X $>$ 75 percentile of Z)
-
-In summary, Z demonstrates lower GDP per capita values compared to the other random variables, as evidenced by its lower medians and lower percentiles. This suggests that the GDP per capita distributions for individuals selected from land areas tend to be lower overall than the distribution for countries and individuals. These differences can be attributed to the sampling criteria and variations in economic development, population distribution, and geographic factors.
-
-Regarding the variance, among the variables X, Y, and Z, Y has the greatest variance. This is evident from the larger range between the 25th and 75th percentiles of Y compared to X and Z. The larger variance in Y indicates a greater diversity in GDP per capita values among individuals from different countries and regions.
+In summary, Z demonstrates higher GDP per capita values compared to the other random variables, as evidenced by its higher medians and higher percentiles. This suggests that the GDP per capita distributions for individuals selected from land areas tend to be higher overall than the distribution for countries and individuals. These differences can be attributed to the sampling criteria and variations in economic development, population distribution, and geographic factors.
  
 
 
